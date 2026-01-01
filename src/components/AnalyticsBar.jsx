@@ -26,8 +26,8 @@ export default function AnalyticsBar() {
     // Animate counters
     const totalServices = getTotalServicesCount()
     const targets = {
-      population: 45000,
-      blocks: 12,
+      population: 57000,
+      blocks: 55,
       services: totalServices
     }
 
