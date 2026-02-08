@@ -47,10 +47,10 @@ export default function LeaderCard({ official, isActive = false }) {
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-1 bg-mayor-highlight-blue rounded-full" />
 
             <h3 className="text-lg font-bold text-mayor-navy mb-2 font-amharic line-clamp-1">
-              {lang === 'am' ? official.full_name_am : official.full_name_en}
+              {lang === 'am' ? official.full_name_am : lang === 'om' ? (official.full_name_om || official.full_name_en) : official.full_name_en}
             </h3>
             <p className="text-sm text-mayor-royal-blue font-medium font-amharic line-clamp-2 min-h-[2.5rem]">
-              {lang === 'am' ? official.title_am : official.title_en}
+              {lang === 'am' ? official.title_am : lang === 'om' ? (official.title_om || official.title_en) : official.title_en}
             </p>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function LeaderCard({ official, isActive = false }) {
       {showModal && (
         <ImageModal
           imageUrl={official.image_url}
-          alt={lang === 'am' ? official.full_name_am : official.full_name_en}
+          alt={lang === 'am' ? official.full_name_am : lang === 'om' ? (official.full_name_om || official.full_name_en) : official.full_name_en}
           onClose={() => setShowModal(false)}
         />
       )}

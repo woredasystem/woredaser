@@ -20,7 +20,7 @@ export default function SectorServicesView({ sectorKey, onBack }) {
               <ArrowLeft className="w-5 h-5" />
               <span>{t('back')}</span>
             </button>
-            <p className="text-mayor-navy font-amharic">{lang === 'am' ? 'አገልግሎት አልተገኘም' : 'Service not found'}</p>
+            <p className="text-mayor-navy font-amharic">{lang === 'am' ? 'አገልግሎት አልተገኘም' : lang === 'om' ? 'Tajaajilli hin argamne' : 'Service not found'}</p>
           </div>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function SectorServicesView({ sectorKey, onBack }) {
   const groupedServices = useMemo(() => {
     const groups = {}
     const ungrouped = []
-    
+
     sector.items.forEach((service, index) => {
       if (service.serviceGroup) {
         const groupKey = service.serviceGroup[lang] || service.serviceGroup.am || 'Other'
@@ -43,7 +43,7 @@ export default function SectorServicesView({ sectorKey, onBack }) {
         ungrouped.push({ ...service, originalIndex: index })
       }
     })
-    
+
     return { groups, ungrouped }
   }, [sector.items, lang])
 
@@ -87,10 +87,10 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                     {groupName}
                   </h2>
                   <span className="text-sm text-mayor-navy/60 font-amharic">
-                    ({groupServices.length} {lang === 'am' ? 'አገልግሎቶች' : 'services'})
+                    ({groupServices.length} {lang === 'am' ? 'አገልግሎቶች' : lang === 'om' ? 'tajaajiloota' : 'services'})
                   </span>
                 </div>
-                
+
                 {/* Services in this group */}
                 {groupServices.map((service, index) => (
                   <div
@@ -106,91 +106,90 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                         <h3 className="text-xl font-bold text-mayor-navy mb-2 font-amharic">
                           {service.name[lang]}
                         </h3>
-                    
-                    {/* Requirements - Hide for Trade Office since it repeats the name */}
-                    {sectorKey !== 'tradeOffice' && (
-                      <div className="bg-mayor-gray-divider/30 rounded-gov p-4 mb-3">
-                        <div className="flex items-start gap-2 mb-3">
-                          <span className="text-sm font-semibold text-mayor-navy font-amharic">
-                            {lang === 'am' ? 'የሚፈለጉ ሰነዶች:' : 'Requirements:'}
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {(() => {
-                            const reqText = service.requirements[lang]
-                            // Split by common separators (Amharic period ።, Amharic comma ፣, or English comma)
-                            const requirements = reqText
-                              .split(/[።፣,]/)
-                              .map(req => req.trim())
-                              .filter(req => req.length > 0)
-                            
-                            // If no separators found or only one item, treat as single requirement
-                            if (requirements.length <= 1) {
-                              return (
-                                <div className="flex items-start gap-2">
-                                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                  <span className="text-mayor-navy/90 leading-relaxed font-amharic text-sm">
-                                    {reqText}
-                                  </span>
-                                </div>
-                              )
-                            }
-                            
-                            return requirements.map((requirement, reqIndex) => (
-                              <div key={reqIndex} className="flex items-start gap-2">
-                                <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                <span className="text-mayor-navy/90 leading-relaxed font-amharic text-sm">
-                                  {requirement}
-                                </span>
-                              </div>
-                            ))
-                          })()}
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Standard */}
-                    {service.standard && (
-                      <div className="mb-3 pt-2 border-t border-mayor-gray-divider">
-                        <span className="text-sm font-semibold text-mayor-royal-blue font-amharic">
-                          {service.standard[lang]}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Standard Time (if standard doesn't exist) */}
-                    {!service.standard && service.standardTime && (
-                      <div className="mb-3 pt-2 border-t border-mayor-gray-divider">
-                        <span className="text-sm font-semibold text-mayor-royal-blue font-amharic">
-                          {lang === 'am' ? 'የተቀመጠው ስታንዳርድ: ' : 'Set Standard: '}
-                          {service.standardTime}
-                        </span>
-                      </div>
-                    )}
+                        {/* Requirements - Hide for Trade Office since it repeats the name */}
+                        {sectorKey !== 'tradeOffice' && (
+                          <div className="bg-mayor-gray-divider/30 rounded-gov p-4 mb-3">
+                            <div className="flex items-start gap-2 mb-3">
+                              <span className="text-sm font-semibold text-mayor-navy font-amharic">
+                                {lang === 'am' ? 'የሚፈለጉ ሰነዶች:' : lang === 'om' ? 'Ragaalee Barbaachisan:' : 'Requirements:'}
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              {(() => {
+                                const reqText = service.requirements[lang]
+                                // Split by common separators (Amharic period ።, Amharic comma ፣, or English comma)
+                                const requirements = reqText
+                                  .split(/[።፣,]/)
+                                  .map(req => req.trim())
+                                  .filter(req => req.length > 0)
 
-                    {/* Fee - Hide for Trade Office */}
-                    {sectorKey !== 'tradeOffice' && (
-                      <div className="flex items-center justify-between pt-2 border-t border-mayor-gray-divider">
-                        <span className="text-sm text-mayor-navy/70 font-amharic">
-                          {lang === 'am' ? 'ክፍያ:' : 'Fee:'}
-                        </span>
-                        <div className="text-right">
-                          <span className={`text-lg font-bold font-amharic ${
-                            service.fee === 0 ? 'text-green-600' : 'text-mayor-royal-blue'
-                          }`}>
-                            {service.fee === 0 
-                              ? (lang === 'am' ? 'ነጻ' : 'Free')
-                              : `${service.fee} ${lang === 'am' ? 'ብር' : 'ETB'}`
-                            }
-                          </span>
-                          {service.paymentMethod && (
-                            <p className="text-xs text-mayor-navy/60 font-amharic mt-1">
-                              {service.paymentMethod[lang]}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                                // If no separators found or only one item, treat as single requirement
+                                if (requirements.length <= 1) {
+                                  return (
+                                    <div className="flex items-start gap-2">
+                                      <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                      <span className="text-mayor-navy/90 leading-relaxed font-amharic text-sm">
+                                        {reqText}
+                                      </span>
+                                    </div>
+                                  )
+                                }
+
+                                return requirements.map((requirement, reqIndex) => (
+                                  <div key={reqIndex} className="flex items-start gap-2">
+                                    <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                    <span className="text-mayor-navy/90 leading-relaxed font-amharic text-sm">
+                                      {requirement}
+                                    </span>
+                                  </div>
+                                ))
+                              })()}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Standard */}
+                        {service.standard && (
+                          <div className="mb-3 pt-2 border-t border-mayor-gray-divider">
+                            <span className="text-sm font-semibold text-mayor-royal-blue font-amharic">
+                              {service.standard[lang]}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Standard Time (if standard doesn't exist) */}
+                        {!service.standard && service.standardTime && (
+                          <div className="mb-3 pt-2 border-t border-mayor-gray-divider">
+                            <span className="text-sm font-semibold text-mayor-royal-blue font-amharic">
+                              {lang === 'am' ? 'የተቀመጠው ስታንዳርድ: ' : lang === 'om' ? 'Sadarkaa Murteeffame: ' : 'Set Standard: '}
+                              {service.standardTime}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Fee - Hide for Trade Office */}
+                        {sectorKey !== 'tradeOffice' && (
+                          <div className="flex items-center justify-between pt-2 border-t border-mayor-gray-divider">
+                            <span className="text-sm text-mayor-navy/70 font-amharic">
+                              {lang === 'am' ? 'ክፍያ:' : lang === 'om' ? 'Kaffaltii:' : 'Fee:'}
+                            </span>
+                            <div className="text-right">
+                              <span className={`text-lg font-bold font-amharic ${service.fee === 0 ? 'text-green-600' : 'text-mayor-royal-blue'
+                                }`}>
+                                {service.fee === 0
+                                  ? (lang === 'am' ? 'ነጻ' : lang === 'om' ? 'Bilisaa' : 'Free')
+                                  : `${service.fee} ${lang === 'am' ? 'ብር' : lang === 'om' ? 'Qarshii' : 'ETB'}`
+                                }
+                              </span>
+                              {service.paymentMethod && (
+                                <p className="text-xs text-mayor-navy/60 font-amharic mt-1">
+                                  {service.paymentMethod[lang]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -215,13 +214,13 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                         <h3 className="text-xl font-bold text-mayor-navy mb-2 font-amharic">
                           {service.name[lang]}
                         </h3>
-                        
+
                         {/* Requirements - Hide for Trade Office since it repeats the name */}
                         {sectorKey !== 'tradeOffice' && (
                           <div className="bg-mayor-gray-divider/30 rounded-gov p-4 mb-3">
                             <div className="flex items-start gap-2 mb-3">
                               <span className="text-sm font-semibold text-mayor-navy font-amharic">
-                                {lang === 'am' ? 'የሚፈለጉ ሰነዶች:' : 'Requirements:'}
+                                {lang === 'am' ? 'የሚፈለጉ ሰነዶች:' : lang === 'om' ? 'Ragaalee Barbaachisan:' : 'Requirements:'}
                               </span>
                             </div>
                             <div className="space-y-2">
@@ -232,7 +231,7 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                                   .split(/[።፣,]/)
                                   .map(req => req.trim())
                                   .filter(req => req.length > 0)
-                                
+
                                 // If no separators found or only one item, treat as single requirement
                                 if (requirements.length <= 1) {
                                   return (
@@ -244,7 +243,7 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                                     </div>
                                   )
                                 }
-                                
+
                                 return requirements.map((requirement, reqIndex) => (
                                   <div key={reqIndex} className="flex items-start gap-2">
                                     <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
@@ -266,12 +265,12 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                             </span>
                           </div>
                         )}
-                        
+
                         {/* Standard Time (if standard doesn't exist) */}
                         {!service.standard && service.standardTime && (
                           <div className="mb-3 pt-2 border-t border-mayor-gray-divider">
                             <span className="text-sm font-semibold text-mayor-royal-blue font-amharic">
-                              {lang === 'am' ? 'የተቀመጠው ስታንዳርድ: ' : 'Set Standard: '}
+                              {lang === 'am' ? 'የተቀመጠው ስታንዳርድ: ' : lang === 'om' ? 'Sadarkaa Murteeffame: ' : 'Set Standard: '}
                               {service.standardTime}
                             </span>
                           </div>
@@ -281,15 +280,14 @@ export default function SectorServicesView({ sectorKey, onBack }) {
                         {sectorKey !== 'tradeOffice' && (
                           <div className="flex items-center justify-between pt-2 border-t border-mayor-gray-divider">
                             <span className="text-sm text-mayor-navy/70 font-amharic">
-                              {lang === 'am' ? 'ክፍያ:' : 'Fee:'}
+                              {lang === 'am' ? 'ክፍያ:' : lang === 'om' ? 'Kaffaltii:' : 'Fee:'}
                             </span>
                             <div className="text-right">
-                              <span className={`text-lg font-bold font-amharic ${
-                                service.fee === 0 ? 'text-green-600' : 'text-mayor-royal-blue'
-                              }`}>
-                                {service.fee === 0 
-                                  ? (lang === 'am' ? 'ነጻ' : 'Free')
-                                  : `${service.fee} ${lang === 'am' ? 'ብር' : 'ETB'}`
+                              <span className={`text-lg font-bold font-amharic ${service.fee === 0 ? 'text-green-600' : 'text-mayor-royal-blue'
+                                }`}>
+                                {service.fee === 0
+                                  ? (lang === 'am' ? 'ነጻ' : lang === 'om' ? 'Bilisaa' : 'Free')
+                                  : `${service.fee} ${lang === 'am' ? 'ብር' : lang === 'om' ? 'Qarshii' : 'ETB'}`
                                 }
                               </span>
                               {service.paymentMethod && (

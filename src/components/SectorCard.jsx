@@ -28,7 +28,7 @@ export default function SectorCard({ sector, onClick }) {
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-mayor-royal-blue/5 rounded-full -mr-16 -mt-16 group-hover:bg-mayor-royal-blue/10 transition-colors"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-mayor-highlight-blue/5 rounded-full -ml-12 -mb-12 group-hover:bg-mayor-highlight-blue/10 transition-colors"></div>
-      
+
       <div className="relative z-10">
         {/* Icon */}
         <div className="mb-6 flex items-center justify-between">
@@ -46,7 +46,7 @@ export default function SectorCard({ sector, onClick }) {
         {/* Service Count */}
         <div className="flex items-center gap-2 text-mayor-royal-blue">
           <span className="text-sm font-semibold font-amharic">
-            {lang === 'am' ? `${sector.items.length} አገልግሎቶች` : `${sector.items.length} Services`}
+            {lang === 'am' ? `${sector.items.length} አገልግሎቶች` : lang === 'om' ? `Tajaajiloota ${sector.items.length}` : `${sector.items.length} Services`}
           </span>
         </div>
 

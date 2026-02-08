@@ -9,10 +9,10 @@ import { Shield, Lock, Building2, Home } from 'lucide-react'
 export default function PortalLogin({ department, roleKey, onSuccess, onBack }) {
   const { t, lang } = useLanguage()
   const navigate = useNavigate()
-  
+
   // Get the Amharic department name for this portal (as default/suggestion)
   const defaultDepartmentAm = getDepartmentDisplayName(department, 'am')
-  
+
   const [departmentName, setDepartmentName] = useState(defaultDepartmentAm || '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -26,18 +26,18 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
       try {
         // Wait a bit for Supabase to restore session from storage
         await new Promise(resolve => setTimeout(resolve, 500))
-        
+
         // Use getCurrentUser which uses caching
         const user = await getCurrentUser()
-        
+
         if (user) {
           console.log('PortalLogin: User already authenticated:', user.portalUser)
-          
+
           // User is already logged in, verify access and navigate immediately
-          const hasAccess = user.portalUser.department === department || 
-                           (user.portalUser.isAdmin && department === 'Admin') ||
-                           user.portalUser.isAdmin
-          
+          const hasAccess = user.portalUser.department === department ||
+            (user.portalUser.isAdmin && department === 'Admin') ||
+            user.portalUser.isAdmin
+
           if (hasAccess) {
             console.log('Redirecting authenticated user to portal')
             // Navigate directly to the portal page
@@ -59,7 +59,7 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
         setCheckingAuth(false)
       }
     }
-    
+
     checkExistingAuth()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [department, lang, navigate])
@@ -78,23 +78,23 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
           .select('*')
           .eq('user_id', session.user.id)
           .single()
-        
+
         if (existingPortalUser && existingPortalUser.department !== department && !existingPortalUser.is_admin) {
           await logout()
         }
       }
-      
+
       const result = await login(departmentName.trim(), password)
-      
+
       if (result.success) {
         setLoading(false) // Stop loading immediately
-        
+
         // Verify user has access to this department
         if (result.authData.portalUser.department !== department && !result.authData.portalUser.isAdmin) {
           setError(lang === 'am' ? 'ይህንን ፓንል ለመዳረስ ፍቃድ የለዎትም' : 'You do not have access to this portal')
           return
         }
-        
+
         // Navigate directly instead of relying on onSuccess callback
         // This ensures navigation happens even if auth state change handler fails
         if (result.authData.portalUser.isAdmin) {
@@ -102,16 +102,16 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
         } else {
           navigate(`/portal/department/${encodeURIComponent(result.authData.portalUser.department)}/${result.authData.portalUser.roleKey}`, { replace: true })
         }
-        
+
         // Also call onSuccess for state management
         onSuccess(result.authData)
       } else {
-        setError(result.error || (lang === 'am' ? 'የተሳሳተ የመግቢያ መረጃ' : 'Invalid credentials'))
+        setError(result.error || (lang === 'am' ? 'የተሳሳተ የመግቢያ መረጃ' : lang === 'om' ? 'Odeeffannoo seensaa dogoggoraa' : 'Invalid credentials'))
         setLoading(false)
       }
     } catch (error) {
       console.error('Login error:', error)
-      setError(error.message || (lang === 'am' ? 'ስህተት ተፈጥሯል። እባክዎ እንደገና ይሞክሩ' : 'An error occurred. Please try again'))
+      setError(error.message || (lang === 'am' ? 'ስህተት ተፈጥሯል። እባክዎ እንደገና ይሞክሩ' : lang === 'om' ? 'Dogongora uumameera. Mee irra deebi\'ii yaali' : 'An error occurred. Please try again'))
       setLoading(false)
     }
   }
@@ -125,7 +125,7 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
             <Shield className="w-8 h-8 text-white" />
           </div>
           <p className="text-white font-amharic text-lg">
-            {lang === 'am' ? 'በመጫን ላይ...' : 'Loading...'}
+            {lang === 'am' ? 'በመጫን ላይ...' : lang === 'om' ? 'Fe\'aa jira...' : 'Loading...'}
           </p>
         </div>
       </div>
@@ -142,10 +142,10 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
               className="flex items-center gap-2 px-4 py-2 text-mayor-navy hover:text-mayor-royal-blue hover:bg-mayor-royal-blue/10 rounded-gov transition-colors font-amharic"
             >
               <Home className="w-5 h-5" />
-              <span>{lang === 'am' ? 'ወደ መነሻ ተመለስ' : 'Back to Home'}</span>
+              <span>{lang === 'am' ? 'ወደ መነሻ ተመለስ' : lang === 'om' ? 'Gara Jalqabaatti Deebi\'i' : 'Back to Home'}</span>
             </button>
           </div>
-          
+
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-mayor-royal-blue/10 rounded-full mb-4">
               <Shield className="w-8 h-8 text-mayor-royal-blue" />
@@ -161,7 +161,7 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-mayor-navy mb-2 font-amharic font-semibold">
-                {lang === 'am' ? 'የስራ ክፍል (አማርኛ)' : 'Department (Amharic)'}
+                {lang === 'am' ? 'የስራ ክፍል (አማርኛ)' : lang === 'om' ? 'Kutaa Hojii (Afaan Amaaraa)' : 'Department (Amharic)'}
               </label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mayor-navy/40" />
@@ -171,20 +171,22 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
                   value={departmentName}
                   onChange={(e) => setDepartmentName(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 rounded-gov bg-white border border-mayor-gray-divider text-mayor-navy focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue focus:border-mayor-royal-blue font-amharic"
-                  placeholder={lang === 'am' ? 'የስራ ክፍል በአማርኛ ያስገቡ (ምሳሌ: ንግድ ጽ/ቤት)' : 'Enter department in Amharic (e.g., ንግድ ጽ/ቤት)'}
+                  placeholder={lang === 'am' ? 'የስራ ክፍል በአማርኛ ያስገቡ (ምሳሌ: ንግድ ጽ/ቤት)' : lang === 'om' ? 'Kutaa hojii Afaan Amaaraan galchaa (fkn: ንግድ ጽ/ቤት)' : 'Enter department in Amharic (e.g., ንግድ ጽ/ቤት)'}
                 />
               </div>
               <p className="text-xs text-mayor-navy/60 mt-1 font-amharic">
-                {lang === 'am' 
-                  ? `ምክር: ${defaultDepartmentAm}` 
-                  : `Suggested: ${defaultDepartmentAm}`
+                {lang === 'am'
+                  ? `ምክር: ${defaultDepartmentAm}`
+                  : lang === 'om'
+                    ? `Yaada: ${defaultDepartmentAm}`
+                    : `Suggested: ${defaultDepartmentAm}`
                 }
               </p>
             </div>
 
             <div>
               <label className="block text-mayor-navy mb-2 font-amharic font-semibold">
-                {lang === 'am' ? 'የይለፍ ቃል' : 'Password'}
+                {lang === 'am' ? 'የይለፍ ቃል' : lang === 'om' ? 'Jecha Icciitii' : 'Password'}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mayor-navy/40" />
@@ -194,7 +196,7 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 rounded-gov bg-white border border-mayor-gray-divider text-mayor-navy focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue focus:border-mayor-royal-blue"
-                  placeholder={lang === 'am' ? 'የይለፍ ቃል ያስገቡ' : 'Enter password'}
+                  placeholder={lang === 'am' ? 'የይለፍ ቃል ያስገቡ' : lang === 'om' ? 'Jecha icciitii galchaa' : 'Enter password'}
                 />
               </div>
             </div>
@@ -220,9 +222,9 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
                 disabled={loading}
                 className="flex-1 gov-button py-2 disabled:opacity-50 font-amharic"
               >
-                {loading 
-                  ? (lang === 'am' ? 'በመግባት ላይ...' : 'Logging in...')
-                  : (lang === 'am' ? 'ግባ' : 'Login')
+                {loading
+                  ? (lang === 'am' ? 'በመግባት ላይ...' : lang === 'om' ? 'Seenaa jira...' : 'Logging in...')
+                  : (lang === 'am' ? 'ግባ' : lang === 'om' ? 'Seeni' : 'Login')
                 }
               </button>
             </div>

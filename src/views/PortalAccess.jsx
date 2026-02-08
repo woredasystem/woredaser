@@ -39,16 +39,16 @@ export default function PortalAccess({ onSelectPortal }) {
               className="flex items-center gap-2 px-4 py-2 text-mayor-navy hover:text-mayor-royal-blue hover:bg-mayor-royal-blue/10 rounded-gov transition-colors font-amharic"
             >
               <Home className="w-5 h-5" />
-              <span>{lang === 'am' ? 'ወደ መነሻ ተመለስ' : 'Back to Home'}</span>
+              <span>{lang === 'am' ? 'ወደ መነሻ ተመለስ' : lang === 'om' ? 'Gara Jalqabaatti Deebi\'i' : 'Back to Home'}</span>
             </button>
           </div>
-          
+
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-mayor-navy mb-2 font-amharic">
-              {lang === 'am' ? 'የመዳረሻ ፓንል' : 'Portal Access'}
+              {lang === 'am' ? 'የመዳረሻ ፓነል' : lang === 'om' ? 'Paanelii Dhaqqabummaa' : 'Portal Access'}
             </h1>
             <p className="text-mayor-navy/70 font-amharic">
-              {lang === 'am' ? 'የስራ ክፍል ወይም አስተዳደር ፓንል ይምረጡ' : 'Select Department or Admin Portal'}
+              {lang === 'am' ? 'የስራ ክፍል ወይም አስተዳደር ፓነል ይምረጡ' : lang === 'om' ? 'Kutaa Hojii ykn Paanelii Bulchiinsaa Filadhu' : 'Select Department or Admin Portal'}
             </p>
           </div>
 
@@ -72,7 +72,7 @@ export default function PortalAccess({ onSelectPortal }) {
                       </h3>
                       {official && (
                         <p className="text-sm text-mayor-navy/70 font-amharic">
-                          {lang === 'am' ? official.full_name_am : official.full_name_en}
+                          {lang === 'am' ? official.full_name_am : lang === 'om' ? (official.full_name_om || official.full_name_en) : official.full_name_en}
                         </p>
                       )}
                     </div>
@@ -94,10 +94,10 @@ export default function PortalAccess({ onSelectPortal }) {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-mayor-navy font-amharic mb-1">
-                  {lang === 'am' ? 'የአስተዳደር ፓንል' : 'Admin Portal'}
+                  {lang === 'am' ? 'የአስተዳደር ፓነል' : lang === 'om' ? 'Paanelii Bulchiinsaa' : 'Admin Portal'}
                 </h3>
                 <p className="text-sm text-mayor-navy/70 font-amharic">
-                  {lang === 'am' ? 'የስርዓቱ አጠቃላይ እይታ' : 'System-wide overview'}
+                  {lang === 'am' ? 'የስርዓቱ አጠቃላይ እይታ' : lang === 'om' ? 'Ilaalcha Waliigalaa Sirna' : 'System-wide overview'}
                 </p>
               </div>
               <ArrowRight className="w-5 h-5 text-mayor-navy/40 group-hover:text-mayor-royal-blue group-hover:translate-x-1 transition-all" />

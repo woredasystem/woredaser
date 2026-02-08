@@ -34,10 +34,10 @@ export default function LeadershipCarousel() {
         {/* Title Section */}
         <div className="mb-12 text-center">
           <span className="text-mayor-royal-blue font-bold tracking-wider uppercase text-sm mb-2 block">
-            {lang === 'am' ? 'የስራ ኃላፊዎች' : 'Our Leadership'}
+            {lang === 'am' ? 'የስራ ላላፊወች' : lang === 'om' ? 'Hoggantoonni Hojii' : 'Our Leadership'}
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-mayor-navy font-amharic">
-            {lang === 'am' ? 'የወረዳው አመራሮች' : 'Meet Our Leaders'}
+            {lang === 'am' ? 'የወረዳው አመራሮች' : lang === 'om' ? 'Hoggantoota Aanaa Keenyaa' : 'Meet Our Leaders'}
           </h2>
         </div>
 
@@ -86,8 +86,8 @@ export default function LeadershipCarousel() {
                     setCurrentIndex(newIndex)
                   }}
                   className={`h-2 rounded-full transition-all duration-300 ${isVisible
-                      ? 'bg-mayor-royal-blue w-8'
-                      : 'bg-gray-200 hover:bg-mayor-royal-blue/50 w-2'
+                    ? 'bg-mayor-royal-blue w-8'
+                    : 'bg-gray-200 hover:bg-mayor-royal-blue/50 w-2'
                     }`}
                   aria-label={`Go to ${official.full_name_en}`}
                 />

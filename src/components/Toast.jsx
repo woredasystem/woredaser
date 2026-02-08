@@ -88,12 +88,12 @@ export default function Toast({ message, type = 'success', onClose, duration = 5
                 {copied ? (
                   <>
                     <Check className="w-4 h-4" />
-                    <span className="font-amharic">{lang === 'am' ? 'ተገልብጧል!' : 'Copied!'}</span>
+                    <span className="font-amharic">{lang === 'am' ? 'ተገልብፇል!' : lang === 'om' ? 'Garagalfameera!' : 'Copied!'}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-4 h-4" />
-                    <span className="font-amharic">{lang === 'am' ? 'ቅዳ' : 'Copy'}</span>
+                    <span className="font-amharic">{lang === 'am' ? 'ቅዳ' : lang === 'om' ? 'Garagalchi' : 'Copy'}</span>
                   </>
                 )}
               </button>

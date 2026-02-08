@@ -17,17 +17,17 @@ export default function LeaderPageCard({ official }) {
               backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 40px)'
             }}></div>
           </div>
-          
+
           {/* Photo Container */}
           <div className="relative h-full flex items-center justify-center p-8">
             {official.image_url ? (
-              <div 
+              <div
                 className="relative w-64 h-80 rounded-gov-xl overflow-hidden shadow-2xl cursor-pointer group-hover:scale-105 transition-transform duration-500 border-4 border-white"
                 onClick={() => setShowModal(true)}
               >
-                <img 
-                  src={official.image_url} 
-                  alt={official.full_name_en} 
+                <img
+                  src={official.image_url}
+                  alt={official.full_name_en}
                   className="w-full h-full object-cover"
                 />
                 {/* Overlay on hover */}
@@ -53,15 +53,15 @@ export default function LeaderPageCard({ official }) {
         <div className="bg-white p-8 text-center relative">
           {/* Decorative Top Border */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-mayor-deep-blue via-mayor-royal-blue to-mayor-highlight-blue"></div>
-          
+
           <h3 className="text-3xl font-bold text-mayor-navy mb-3 font-amharic group-hover:text-mayor-royal-blue transition-colors">
-            {lang === 'am' ? official.full_name_am : official.full_name_en}
+            {lang === 'am' ? official.full_name_am : lang === 'om' ? (official.full_name_om || official.full_name_en) : official.full_name_en}
           </h3>
-          
+
           <div className="w-20 h-1 bg-mayor-royal-blue mx-auto mb-4 rounded-full"></div>
-          
+
           <p className="text-lg text-mayor-royal-blue font-amharic font-semibold leading-relaxed">
-            {lang === 'am' ? official.title_am : official.title_en}
+            {lang === 'am' ? official.title_am : lang === 'om' ? (official.title_om || official.title_en) : official.title_en}
           </p>
 
           {/* Decorative Bottom Accent */}
@@ -73,7 +73,7 @@ export default function LeaderPageCard({ official }) {
       {showModal && official.image_url && (
         <ImageModal
           imageUrl={official.image_url}
-          alt={lang === 'am' ? official.full_name_am : official.full_name_en}
+          alt={lang === 'am' ? official.full_name_am : lang === 'om' ? (official.full_name_om || official.full_name_en) : official.full_name_en}
           onClose={() => setShowModal(false)}
         />
       )}
