@@ -8,12 +8,15 @@ import { uploadOfficialPhoto } from '../utils/storage'
 import { showToast } from './ToastContainer'
 import { Users, Trash2, Plus, Pencil, Upload } from 'lucide-react'
 
+const CUSTOM_LEADER_ROLE = 'custom_leader'
+
 const emptyOfficialForm = {
   full_name_am: '',
   full_name_en: '',
   title_am: '',
   title_en: '',
   role_key: 'trade_head',
+  custom_role_key: '',
   image_url: '',
   bio_am: '',
   bio_en: '',
@@ -40,6 +43,7 @@ export default function AdminLeadershipPanel() {
       title_am: official.title_am,
       title_en: official.title_en,
       role_key: official.role_key,
+      custom_role_key: '',
       image_url: official.image_url || '',
       bio_am: official.bio_am || '',
       bio_en: official.bio_en || '',
@@ -61,13 +65,20 @@ export default function AdminLeadershipPanel() {
     setSavingOfficial(true)
     try {
       let imageUrl = officialForm.image_url.trim() || null
+      const roleKey = officialForm.role_key === CUSTOM_LEADER_ROLE
+        ? officialForm.custom_role_key.trim().toLowerCase().replace(/\s+/g, '_')
+        : officialForm.role_key
+
+      if (!roleKey) {
+        throw new Error(lang === 'am' ? 'የሚና ቁልፍ ያስፈልጋል' : 'Role key is required')
+      }
 
       const payload = {
         full_name_am: officialForm.full_name_am.trim(),
         full_name_en: officialForm.full_name_en.trim(),
         title_am: officialForm.title_am.trim(),
         title_en: officialForm.title_en.trim(),
-        role_key: officialForm.role_key,
+        role_key: roleKey,
         bio_am: officialForm.bio_am.trim() || null,
         bio_en: officialForm.bio_en.trim() || null,
         show_on_home: !!officialForm.show_on_home,
@@ -155,7 +166,19 @@ export default function AdminLeadershipPanel() {
                   {getDepartmentDisplayName(role.department, lang)} ({role.roleKey})
                 </option>
               ))}
+              <option value={CUSTOM_LEADER_ROLE}>
+                {lang === 'am' ? 'ተጨማሪ አመራር (ሌላ ሚና)' : 'Additional leader (custom role)'}
+              </option>
             </select>
+            {officialForm.role_key === CUSTOM_LEADER_ROLE && (
+              <input
+                required
+                placeholder={lang === 'am' ? 'የሚና ቁልፍ (ለምሳሌ deputy_leader)' : 'Role key (e.g. deputy_leader)'}
+                value={officialForm.custom_role_key}
+                onChange={(e) => setOfficialForm({ ...officialForm, custom_role_key: e.target.value })}
+                className="w-full px-4 py-2 border rounded-gov md:col-span-2"
+              />
+            )}
             <textarea placeholder={lang === 'am' ? 'ባዮ / መልእክት (አማ)' : 'Bio / message (Amharic)'} value={officialForm.bio_am} onChange={(e) => setOfficialForm({ ...officialForm, bio_am: e.target.value })} className="w-full px-4 py-2 border rounded-gov md:col-span-2" rows={3} />
             <textarea placeholder={lang === 'am' ? 'ባዮ / መልእክት (እንግ)' : 'Bio / message (English)'} value={officialForm.bio_en} onChange={(e) => setOfficialForm({ ...officialForm, bio_en: e.target.value })} className="w-full px-4 py-2 border rounded-gov md:col-span-2" rows={3} />
             <label className="flex items-center gap-2 md:col-span-2 font-amharic text-sm text-mayor-navy cursor-pointer">

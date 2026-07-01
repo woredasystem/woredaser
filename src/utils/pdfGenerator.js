@@ -94,14 +94,14 @@ export function generateComplaintPDF(complaint, lang = 'am') {
         
         body {
           font-family: 'Noto Sans Ethiopic', 'Arial', sans-serif;
-          color: #0A2A4A;
+          color: #002d5c;
           line-height: 1.6;
           padding: 0;
           margin: 0;
         }
         
         .header {
-          background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
+          background: linear-gradient(135deg, #003875 0%, #004694 100%);
           color: white;
           padding: 30px 40px;
           text-align: center;
@@ -137,7 +137,7 @@ export function generateComplaintPDF(complaint, lang = 'am') {
         .section-title {
           font-size: 18px;
           font-weight: 700;
-          color: #0D47A1;
+          color: #003875;
           margin-bottom: 15px;
           padding-bottom: 8px;
           border-bottom: 2px solid #E3E3E3;
@@ -188,14 +188,14 @@ export function generateComplaintPDF(complaint, lang = 'am') {
         
         .info-label {
           font-weight: 600;
-          color: #0A2A4A;
+          color: #002d5c;
           min-width: 180px;
           font-size: 13px;
         }
         
         .info-value {
           flex: 1;
-          color: #0A2A4A;
+          color: #002d5c;
           font-size: 13px;
           word-wrap: break-word;
         }
@@ -203,14 +203,14 @@ export function generateComplaintPDF(complaint, lang = 'am') {
         .ticket-number {
           font-size: 22px;
           font-weight: 700;
-          color: #0D47A1;
+          color: #003875;
           margin-bottom: 8px;
         }
         
         .unique-code {
           font-size: 16px;
           font-weight: 600;
-          color: #1565C0;
+          color: #004694;
           margin-bottom: 20px;
         }
         
@@ -218,7 +218,7 @@ export function generateComplaintPDF(complaint, lang = 'am') {
           background: #F5F5F5;
           padding: 15px;
           border-radius: 8px;
-          border-left: 4px solid #1565C0;
+          border-left: 4px solid #004694;
           margin-top: 10px;
           font-size: 13px;
           line-height: 1.8;

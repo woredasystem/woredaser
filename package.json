@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "seed:sample": "node scripts/seed-sample-data.js"
+    "seed:sample": "node scripts/seed-sample-data.js",
+    "seed:leaders": "node scripts/seed-leaders-and-admins.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",

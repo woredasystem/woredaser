@@ -11,11 +11,18 @@ export default {
         'english': ['Noto Sans', 'Inter', 'Roboto', 'sans-serif'],
       },
       colors: {
-        'mayor-deep-blue': '#0D47A1',
-        'mayor-royal-blue': '#1565C0',
-        'mayor-highlight-blue': '#1E88E5',
+        brand: {
+          DEFAULT: '#004694',
+          dark: '#002d5c',
+          deep: '#003875',
+          light: '#1a6fbf',
+          ray: '#4a9fd4',
+        },
+        'mayor-deep-blue': '#003875',
+        'mayor-royal-blue': '#004694',
+        'mayor-highlight-blue': '#1a6fbf',
         'mayor-gray-divider': '#E3E3E3',
-        'mayor-navy': '#0A2A4A',
+        'mayor-navy': '#002d5c',
       },
       borderRadius: {
         'gov': '8px',

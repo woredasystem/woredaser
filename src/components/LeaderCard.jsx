@@ -9,7 +9,7 @@ export default function LeaderCard({ official, isActive = false }) {
   return (
     <>
       <div className={`flex-shrink-0 w-72 transition-all duration-500 ${isActive ? 'scale-105 z-10' : 'scale-95 opacity-80 hover:opacity-100'}`}>
-        <div className={`bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group ${isActive ? 'ring-4 ring-mayor-royal-blue/20' : ''}`}>
+        <div className={`bg-white rounded-3xl overflow-hidden shadow-[0_8px_30px_rgba(0,45,92,0.06)] hover:shadow-[0_20px_40px_-15px_rgba(0,45,92,0.15)] transition-all duration-300 group ${isActive ? 'ring-2 ring-mayor-royal-blue/30 ring-offset-2' : 'border border-mayor-gray-divider'}`}>
           {/* Image Container */}
           <div
             className="relative h-80 overflow-hidden cursor-pointer"

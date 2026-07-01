@@ -156,7 +156,7 @@ export function exportComplaintsToPDF(complaints, lang = 'am') {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Noto Sans Ethiopic', 'Arial', sans-serif;
-          color: #0A2A4A;
+          color: #002d5c;
           line-height: 1.6;
           padding: 20px;
         }
@@ -269,7 +269,7 @@ export function exportAppointmentsToPDF(appointments, lang = 'am') {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Noto Sans Ethiopic', 'Arial', sans-serif;
-          color: #0A2A4A;
+          color: #002d5c;
           line-height: 1.6;
           padding: 20px;
         }

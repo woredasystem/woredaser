@@ -27,15 +27,15 @@ import {
 import { getDepartmentDisplayName } from '../utils/routing'
 
 const BRAND = {
-  navy: '#0A2A4A',
-  deep: '#0D47A1',
-  royal: '#1565C0',
-  highlight: '#1E88E5',
+  navy: '#002d5c',
+  deep: '#003875',
+  royal: '#004694',
+  highlight: '#1a6fbf',
   pending: '#F59E0B',
-  inProgress: '#1E88E5',
+  inProgress: '#1a6fbf',
   resolved: '#16A34A',
   escalated: '#EF4444',
-  confirmed: '#1565C0',
+  confirmed: '#004694',
   rescheduled: '#F59E0B',
   completed: '#16A34A',
   missed: '#EF4444',

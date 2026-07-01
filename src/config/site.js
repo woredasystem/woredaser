@@ -15,6 +15,8 @@ export const siteConfig = {
     om: '',
   },
   emailDomain: 'woreda.gov.et',
+  /** Primary brand color — matches official seal / logo */
+  brandColor: '#004694',
   /** Public portal URL for SMS tracking links (update when deployed) */
   publicSiteUrl: 'https://woreda-portal.vercel.app',
   storageKeyPrefix: 'woreda_portal',
@@ -128,6 +130,7 @@ export const portalEmailRoles = {
   chiefExecutive: 'chief.executive',
   councilSpeaker: 'council.speaker',
   admin: 'admin',
+  admin2: 'admin2',
 }
 
 const roleKeyToEmailLocal = {

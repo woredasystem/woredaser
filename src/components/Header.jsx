@@ -58,9 +58,9 @@ export default function Header({ onPortalAccess }) {
       : location.pathname === path || location.pathname.startsWith(`${path}/`)
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 sm:pt-4" ref={mobileRef}>
-        <div className="flex items-center gap-3 sm:gap-4 h-[3.25rem] sm:h-14 rounded-full border border-mayor-navy/10 bg-white px-2 sm:px-3 shadow-[0_4px_24px_rgba(10,42,74,0.06)]">
+    <header className="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-4 sm:pt-6" ref={mobileRef}>
+        <div className="flex items-center gap-3 sm:gap-4 h-[3.5rem] sm:h-16 rounded-full border border-white/40 bg-white/70 backdrop-blur-md px-3 sm:px-4 shadow-[0_8px_32px_rgba(0,45,92,0.08)]">
           {/* Logo */}
           <button
             type="button"

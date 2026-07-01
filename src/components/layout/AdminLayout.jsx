@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Menu, X, LogOut, ArrowLeft, PanelLeftClose, PanelLeft } from 'lucide-react'
 import { useLanguage } from '../../hooks/useLanguage'
+import BrandSunburst from '../brand/BrandSunburst'
 
 export default function AdminLayout({
   title,
@@ -31,8 +32,10 @@ export default function AdminLayout({
       )}
 
       {/* Sidebar */}
-      <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col bg-mayor-navy text-white transition-all duration-300
+      <BrandSunburst
+        as="aside"
+        variant="subtle"
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col text-white transition-all duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           w-64 ${sidebarWidth} shadow-xl lg:shadow-none`}
       >
@@ -116,7 +119,7 @@ export default function AdminLayout({
             {!collapsed && <span>{lang === 'am' ? 'ውጣ' : 'Logout'}</span>}
           </button>
         </div>
-      </aside>
+      </BrandSunburst>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">

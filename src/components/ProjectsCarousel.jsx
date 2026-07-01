@@ -1,47 +1,63 @@
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, ArrowRight, Images } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowRight, Images, ArrowUpRight } from 'lucide-react'
 import { useLanguage } from '../hooks/useLanguage'
 import { useProjects } from '../hooks/useProjects'
 import { pickLocalized } from '../utils/localized'
 import { getProjectImages } from './ProjectCard'
 
-function CarouselSlide({ project, lang, onClick }) {
+function CarouselSlide({ project, lang, onClick, isActive }) {
   const title = pickLocalized(project, 'title', lang)
   const description = pickLocalized(project, 'description', lang)
   const cover = getProjectImages(project)[0]
   const excerpt =
-    description.length > 100 ? `${description.slice(0, 100).trim()}…` : description
+    description.length > 120 ? `${description.slice(0, 120).trim()}…` : description
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group w-full text-left flex flex-col sm:flex-row bg-white border-2 border-mayor-gray-divider rounded-2xl overflow-hidden hover:border-mayor-royal-blue/35 transition-colors"
+      className={`group w-full text-left relative bg-white rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,45,92,0.1)] transition-all duration-700 ${isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-50'}`}
     >
-      <div className="sm:w-[38%] shrink-0 h-44 sm:h-auto sm:min-h-[200px] bg-slate-100 overflow-hidden">
-        {cover ? (
-          <img
-            src={cover}
-            alt={title}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-mayor-navy/20">
-            <Images className="w-10 h-10" />
+      <div className="flex flex-col sm:flex-row h-full">
+        <div className="sm:w-1/2 relative h-64 sm:h-auto sm:min-h-[360px] overflow-hidden bg-slate-100">
+          {cover ? (
+            <>
+              <img
+                src={cover}
+                alt={title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20 mix-blend-multiply sm:bg-gradient-to-l sm:from-transparent sm:to-black/30"></div>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-mayor-navy/5 to-mayor-royal-blue/10 text-mayor-navy/20">
+              <Images className="w-16 h-16" />
+            </div>
+          )}
+          
+          {/* Decorative Tag */}
+          <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-mayor-navy shadow-lg">
+            {lang === 'am' ? 'ፕሮጀክት' : lang === 'om' ? 'Pirojekti' : 'Project'}
           </div>
-        )}
-      </div>
-      <div className="flex flex-col justify-center p-5 sm:p-6 sm:w-[62%] min-w-0">
-        <h3 className="text-lg font-bold text-mayor-navy font-amharic mb-2 line-clamp-2 group-hover:text-mayor-royal-blue transition-colors">
-          {title}
-        </h3>
-        <p className="text-sm text-mayor-navy/60 font-amharic leading-relaxed line-clamp-2 mb-3">
-          {excerpt}
-        </p>
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-mayor-royal-blue font-amharic">
-          {lang === 'am' ? 'ተጨማሪ' : lang === 'om' ? 'Bal\'inaan' : 'Read more'}
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-        </span>
+        </div>
+        
+        <div className="sm:w-1/2 flex flex-col justify-center p-8 sm:p-12 relative z-10 bg-white">
+          <h3 className="text-2xl sm:text-3xl font-bold text-mayor-navy font-amharic mb-4 line-clamp-2 group-hover:text-mayor-royal-blue transition-colors">
+            {title}
+          </h3>
+          <p className="text-base sm:text-lg text-mayor-navy/60 font-medium font-amharic leading-relaxed line-clamp-3 mb-8">
+            {excerpt}
+          </p>
+          
+          <div className="mt-auto flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 text-sm font-bold text-mayor-royal-blue font-amharic group-hover:text-mayor-highlight-blue transition-colors">
+              {lang === 'am' ? 'ዝርዝር እይ' : lang === 'om' ? 'Bal\'inaan' : 'View Details'}
+              <div className="w-8 h-8 rounded-full bg-mayor-royal-blue/10 flex items-center justify-center group-hover:bg-mayor-royal-blue/20 transition-colors">
+                <ArrowUpRight className="w-4 h-4" />
+              </div>
+            </span>
+          </div>
+        </div>
       </div>
     </button>
   )
@@ -62,16 +78,16 @@ export default function ProjectsCarousel({ onViewAll, onProjectClick }) {
 
   useEffect(() => {
     if (count <= 1) return
-    const timer = setInterval(next, 7000)
+    const timer = setInterval(next, 8000)
     return () => clearInterval(timer)
   }, [count, next])
 
   if (loading) {
     return (
-      <section className="py-12 sm:py-14 bg-slate-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 animate-pulse">
-          <div className="h-6 bg-slate-200 rounded w-1/3 mb-6" />
-          <div className="h-52 bg-slate-200 rounded-2xl" />
+      <section className="py-20 sm:py-28 bg-slate-50/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 animate-pulse">
+          <div className="h-8 bg-slate-200 rounded w-1/4 mb-10" />
+          <div className="h-96 bg-slate-100 rounded-[2.5rem]" />
         </div>
       </section>
     )
@@ -80,20 +96,26 @@ export default function ProjectsCarousel({ onViewAll, onProjectClick }) {
   if (count === 0) return null
 
   const viewAllLabel =
-    lang === 'am' ? 'ሁሉንም' : lang === 'om' ? 'Hunda' : 'View all'
+    lang === 'am' ? 'ሁሉንም ፕሮጀክቶች እይ' : lang === 'om' ? 'Hunda' : 'View all projects'
 
   const sectionTitle =
     lang === 'am' ? 'ፕሮጀክቶች' : lang === 'om' ? 'Pirojektoota' : 'Projects'
 
   return (
-    <section id="projects" className="py-12 sm:py-14 bg-slate-50 scroll-mt-24">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between gap-4 mb-5">
+    <section id="projects" className="py-20 sm:py-28 bg-white scroll-mt-24 relative overflow-hidden">
+      {/* Background Decorators */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-mayor-royal-blue/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-mayor-royal-blue font-amharic">
-              {sectionTitle}
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-mayor-navy font-amharic mt-1">
+            <div className="flex items-center gap-3 mb-4 justify-start">
+              <span className="w-8 h-[2px] bg-gradient-to-r from-mayor-royal-blue to-mayor-highlight-blue rounded-full"></span>
+              <span className="inline-flex px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-mayor-royal-blue bg-mayor-royal-blue/5 border border-mayor-royal-blue/10 rounded-full font-amharic shadow-[0_2px_10px_rgba(26,111,191,0.05)]">
+                {sectionTitle}
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-mayor-navy font-amharic mb-0 leading-tight tracking-tight">
               {lang === 'am'
                 ? 'የልማት ፕሮጀክቶች'
                 : lang === 'om'
@@ -105,7 +127,7 @@ export default function ProjectsCarousel({ onViewAll, onProjectClick }) {
             <button
               type="button"
               onClick={onViewAll}
-              className="inline-flex items-center gap-1.5 px-4 py-2 border-2 border-mayor-navy text-mayor-navy rounded-lg text-sm font-semibold font-amharic hover:bg-mayor-navy hover:text-white transition-colors shrink-0"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-mayor-navy text-white rounded-2xl text-sm font-bold font-amharic hover:bg-mayor-royal-blue hover:shadow-lg hover:shadow-mayor-royal-blue/20 hover:-translate-y-0.5 transition-all shrink-0"
             >
               {viewAllLabel}
               <ArrowRight className="w-4 h-4" />
@@ -114,17 +136,18 @@ export default function ProjectsCarousel({ onViewAll, onProjectClick }) {
         </div>
 
         <div className="relative">
-          <div className="overflow-hidden rounded-2xl">
+          <div className="overflow-hidden rounded-[2.5rem] py-4">
             <div
-              className="flex transition-transform duration-400 ease-out"
+              className="flex transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
               style={{ transform: `translateX(-${index * 100}%)` }}
             >
-              {projects.map((project) => (
-                <div key={project.id} className="w-full flex-shrink-0">
+              {projects.map((project, i) => (
+                <div key={project.id} className="w-full flex-shrink-0 px-2 sm:px-4">
                   <CarouselSlide
                     project={project}
                     lang={lang}
                     onClick={() => onProjectClick?.(project.id)}
+                    isActive={i === index}
                   />
                 </div>
               ))}
@@ -132,36 +155,36 @@ export default function ProjectsCarousel({ onViewAll, onProjectClick }) {
           </div>
 
           {count > 1 && (
-            <div className="flex items-center justify-between mt-4 gap-3">
-              <div className="flex gap-1.5">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-8 gap-6 px-4">
+              <div className="flex gap-2">
                 {projects.map((p, i) => (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => setIndex(i)}
-                    className={`h-1.5 rounded-full transition-all ${
-                      i === index ? 'w-6 bg-mayor-royal-blue' : 'w-1.5 bg-mayor-gray-divider hover:bg-mayor-royal-blue/50'
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      i === index ? 'w-10 bg-gradient-to-r from-mayor-navy to-mayor-royal-blue shadow-md' : 'w-2 bg-mayor-gray-divider hover:bg-mayor-royal-blue/50'
                     }`}
                     aria-label={`Project ${i + 1}`}
                   />
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={prev}
-                  className="p-2 rounded-lg border border-mayor-gray-divider bg-white text-mayor-navy hover:border-mayor-royal-blue hover:text-mayor-royal-blue transition-colors"
+                  className="w-12 h-12 flex items-center justify-center rounded-2xl border-2 border-mayor-gray-divider/50 bg-white text-mayor-navy hover:border-mayor-royal-blue hover:text-mayor-royal-blue hover:shadow-lg transition-all"
                   aria-label="Previous"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
                 </button>
                 <button
                   type="button"
                   onClick={next}
-                  className="p-2 rounded-lg border border-mayor-gray-divider bg-white text-mayor-navy hover:border-mayor-royal-blue hover:text-mayor-royal-blue transition-colors"
+                  className="w-12 h-12 flex items-center justify-center rounded-2xl border-2 border-mayor-gray-divider/50 bg-white text-mayor-navy hover:border-mayor-royal-blue hover:text-mayor-royal-blue hover:shadow-lg transition-all"
                   aria-label="Next"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
                 </button>
               </div>
             </div>

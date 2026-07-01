@@ -4,6 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getPortalEmail } from '../src/config/site.js'
+import { seedPortalAdmins } from '../src/data/seedLeadersAndAdmins.js'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://rbbyniuqdukfehbacgyo.supabase.co'
 const serviceRoleKey = process.argv[2] || process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -90,16 +91,16 @@ const portalUsers = [
     roleKey: 'council_speaker',
     isAdmin: false
   },
-  {
-    email: getPortalEmail('admin'),
-    password: 'Admin2025!',
-    username: 'admin',
-    fullName: 'System Administrator',
-    department: 'Admin',
-    departmentAm: 'አስተዳደር',
-    roleKey: 'admin',
-    isAdmin: true
-  }
+  ...seedPortalAdmins.map((admin) => ({
+    email: admin.email,
+    password: admin.password,
+    username: admin.username,
+    fullName: admin.fullName,
+    department: admin.department,
+    departmentAm: admin.departmentAm,
+    roleKey: admin.roleKey,
+    isAdmin: true,
+  })),
 ]
 
 async function createUsers() {

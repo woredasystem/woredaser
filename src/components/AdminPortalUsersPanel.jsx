@@ -13,6 +13,7 @@ const emptyUserForm = {
   username: '',
   full_name: '',
   role_key: 'trade_head',
+  is_admin: false,
 }
 
 export default function AdminPortalUsersPanel() {
@@ -26,8 +27,10 @@ export default function AdminPortalUsersPanel() {
   const [creatingUser, setCreatingUser] = useState(false)
   const [updatingUser, setUpdatingUser] = useState(false)
   const [showUserForm, setShowUserForm] = useState(false)
+  const [showAdminForm, setShowAdminForm] = useState(false)
 
-  const allDepartments = departments
+  const officerDepartments = departments.filter((d) => !d.isAdmin)
+  const adminDepartment = departments.find((d) => d.isAdmin)
 
   const fetchPortalUsers = async () => {
     setLoadingUsers(true)
@@ -55,7 +58,9 @@ export default function AdminPortalUsersPanel() {
     e.preventDefault()
     setCreatingUser(true)
     try {
-      const role = getRole(userForm.role_key)
+      const role = showAdminForm
+        ? (adminDepartment || getRole('admin'))
+        : getRole(userForm.role_key)
       if (!role) throw new Error('Invalid role')
 
       const email = userForm.email.trim().toLowerCase()
@@ -69,13 +74,14 @@ export default function AdminPortalUsersPanel() {
         department: role.department,
         departmentAm: role.departmentAm,
         roleKey: role.roleKey,
-        isAdmin: !!role.isAdmin,
+        isAdmin: showAdminForm || userForm.is_admin || !!role.isAdmin,
         createOfficial: false,
       })
 
       showToast(lang === 'am' ? 'የፖርታል ተጠቃሚ ተፈጥሯል' : 'Portal user created', 'success')
       setUserForm(emptyUserForm)
       setShowUserForm(false)
+      setShowAdminForm(false)
       await fetchPortalUsers()
     } catch (error) {
       showToast(error.message, 'error')
@@ -98,7 +104,7 @@ export default function AdminPortalUsersPanel() {
         department: role?.department || editingUser.department,
         departmentAm: role?.departmentAm || editingUser.department_am,
         roleKey: editingUser.role_key,
-        isAdmin: role?.isAdmin ?? editingUser.is_admin,
+        isAdmin: editingUser.is_admin,
         password: editingUser.newPassword || undefined,
       })
 
@@ -132,6 +138,143 @@ export default function AdminPortalUsersPanel() {
     }
   }
 
+  const portalAdmins = portalUsers.filter((u) => u.is_admin)
+  const portalOfficers = portalUsers.filter((u) => !u.is_admin)
+
+  const openCreateAdmin = () => {
+    setUserForm({
+      ...emptyUserForm,
+      role_key: adminDepartment?.roleKey || 'admin',
+      is_admin: true,
+    })
+    setShowAdminForm(true)
+    setShowUserForm(false)
+    setEditingUser(null)
+  }
+
+  const openCreateOfficer = () => {
+    setUserForm({
+      ...emptyUserForm,
+      role_key: officerDepartments[0]?.roleKey || 'trade_head',
+      is_admin: false,
+    })
+    setShowUserForm(true)
+    setShowAdminForm(false)
+    setEditingUser(null)
+  }
+
+  const renderUserForm = (isAdminForm) => (
+    <form onSubmit={handleCreateUser} className="mb-6 p-4 bg-slate-50 rounded-gov-lg space-y-4">
+      <p className="font-semibold text-mayor-navy font-amharic">
+        {isAdminForm
+          ? (lang === 'am' ? 'አዲስ የፖርታል አስተዳዳሪ' : 'New portal administrator')
+          : (lang === 'am' ? 'አዲስ የፖርታል ባለሙያ' : 'New portal officer')}
+      </p>
+      <div className="grid md:grid-cols-2 gap-4">
+        <input
+          required
+          type="email"
+          placeholder={lang === 'am' ? 'ኢሜይል (ለመግቢያ)' : 'Login email'}
+          value={userForm.email}
+          onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+          className="w-full px-4 py-2 border rounded-gov md:col-span-2"
+        />
+        <input
+          required
+          placeholder={lang === 'am' ? 'የተጠቃሚ ስም' : 'Username'}
+          value={userForm.username}
+          onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
+          className="w-full px-4 py-2 border rounded-gov"
+        />
+        <input
+          required
+          type="password"
+          minLength={8}
+          placeholder={lang === 'am' ? 'የይለፍ ቃል' : 'Password'}
+          value={userForm.password}
+          onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+          className="w-full px-4 py-2 border rounded-gov"
+        />
+        <input
+          required
+          placeholder={lang === 'am' ? 'ሙሉ ስም' : 'Full name'}
+          value={userForm.full_name}
+          onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
+          className="w-full px-4 py-2 border rounded-gov md:col-span-2"
+        />
+        {!isAdminForm && (
+          <select
+            value={userForm.role_key}
+            onChange={(e) => setUserForm({ ...userForm, role_key: e.target.value })}
+            className="w-full px-4 py-2 border rounded-gov md:col-span-2"
+          >
+            {officerDepartments.map((role) => (
+              <option key={role.roleKey} value={role.roleKey}>
+                {getDepartmentDisplayName(role.department, lang)} ({role.roleKey})
+              </option>
+            ))}
+          </select>
+        )}
+        {!isAdminForm && (
+          <label className="flex items-center gap-2 text-sm md:col-span-2">
+            <input
+              type="checkbox"
+              checked={userForm.is_admin}
+              onChange={(e) => setUserForm({ ...userForm, is_admin: e.target.checked })}
+            />
+            {lang === 'am' ? 'የፖርታል አስተዳዳሪ ፍቃድ (ሙሉ አስተዳደር)' : 'Grant portal admin access (full system admin)'}
+          </label>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <button type="submit" disabled={creatingUser} className="gov-button px-6 py-2">
+          {creatingUser ? '...' : (lang === 'am' ? 'ፍጠር' : 'Create')}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setShowUserForm(false); setShowAdminForm(false) }}
+          className="px-6 py-2 border rounded-gov"
+        >
+          {lang === 'am' ? 'ሰርዝ' : 'Cancel'}
+        </button>
+      </div>
+    </form>
+  )
+
+  const renderUserTable = (users, emptyLabel) => {
+    if (users.length === 0) {
+      return <p className="text-mayor-navy/60 font-amharic text-center py-6">{emptyLabel}</p>
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="border-b">
+              <th className="py-2 px-3">Email</th>
+              <th className="py-2 px-3 font-amharic">{lang === 'am' ? 'ስም' : 'Name'}</th>
+              <th className="py-2 px-3">{lang === 'am' ? 'ክፍል' : 'Dept'}</th>
+              <th className="py-2 px-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} className="border-b border-gray-100">
+                <td className="py-3 px-3 text-sm">{user.email}</td>
+                <td className="py-3 px-3 font-amharic">{user.full_name}</td>
+                <td className="py-3 px-3 text-sm">{getDepartmentDisplayName(user.department, lang)}</td>
+                <td className="py-3 px-3 flex gap-1">
+                  <button type="button" onClick={() => setEditingUser({ ...user })} className="text-mayor-royal-blue p-1"><Pencil className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => handleDeletePortalUser(user.id)} className="text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
   return (
     <section className="gov-card p-6">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -146,63 +289,20 @@ export default function AdminPortalUsersPanel() {
               : 'Staff who log into department portals. Not shown on the homepage. Use the email you assign here to sign in.'}
           </p>
         </div>
-        <button type="button" onClick={() => { setShowUserForm(true); setEditingUser(null) }} className="gov-button px-4 py-2 flex items-center gap-2">
-          <UserPlus className="w-4 h-4" />
-          {lang === 'am' ? 'ተጠቃሚ ፍጠር' : 'Create Officer'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={openCreateOfficer} className="gov-button px-4 py-2 flex items-center gap-2">
+            <UserPlus className="w-4 h-4" />
+            {lang === 'am' ? 'ባለሙያ ፍጠር' : 'Create Officer'}
+          </button>
+          <button type="button" onClick={openCreateAdmin} className="px-4 py-2 flex items-center gap-2 rounded-gov border-2 border-mayor-royal-blue text-mayor-royal-blue font-semibold hover:bg-mayor-royal-blue hover:text-white transition-colors">
+            <UserPlus className="w-4 h-4" />
+            {lang === 'am' ? 'አስተዳዳሪ ፍጠር' : 'Create Admin'}
+          </button>
+        </div>
       </div>
 
-      {showUserForm && !editingUser && (
-        <form onSubmit={handleCreateUser} className="mb-6 p-4 bg-slate-50 rounded-gov-lg space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <input
-              required
-              type="email"
-              placeholder={lang === 'am' ? 'ኢሜይል (ለመግቢያ)' : 'Login email'}
-              value={userForm.email}
-              onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov md:col-span-2"
-            />
-            <input
-              required
-              placeholder={lang === 'am' ? 'የተጠቃሚ ስም' : 'Username'}
-              value={userForm.username}
-              onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov"
-            />
-            <input
-              required
-              type="password"
-              minLength={8}
-              placeholder={lang === 'am' ? 'የይለፍ ቃል' : 'Password'}
-              value={userForm.password}
-              onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov"
-            />
-            <input
-              required
-              placeholder={lang === 'am' ? 'ሙሉ ስም' : 'Full name'}
-              value={userForm.full_name}
-              onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov md:col-span-2"
-            />
-            <select
-              value={userForm.role_key}
-              onChange={(e) => setUserForm({ ...userForm, role_key: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov md:col-span-2"
-            >
-              {allDepartments.map((role) => (
-                <option key={role.roleKey} value={role.roleKey}>
-                  {getDepartmentDisplayName(role.department, lang)} ({role.roleKey})
-                </option>
-              ))}
-            </select>
-          </div>
-          <button type="submit" disabled={creatingUser} className="gov-button px-6 py-2">
-            {creatingUser ? '...' : (lang === 'am' ? 'ተጠቃሚ ፍጠር' : 'Create')}
-          </button>
-        </form>
-      )}
+      {showUserForm && !editingUser && renderUserForm(false)}
+      {showAdminForm && !editingUser && renderUserForm(true)}
 
       {editingUser && (
         <form onSubmit={handleUpdateUser} className="mb-6 p-4 bg-blue-50 rounded-gov-lg space-y-4 border border-mayor-royal-blue/20">
@@ -235,10 +335,18 @@ export default function AdminPortalUsersPanel() {
               onChange={(e) => setEditingUser({ ...editingUser, role_key: e.target.value })}
               className="px-4 py-2 border rounded-gov md:col-span-2"
             >
-              {allDepartments.map((role) => (
+              {departments.map((role) => (
                 <option key={role.roleKey} value={role.roleKey}>{getDepartmentDisplayName(role.department, lang)}</option>
               ))}
             </select>
+            <label className="flex items-center gap-2 text-sm md:col-span-2">
+              <input
+                type="checkbox"
+                checked={!!editingUser.is_admin}
+                onChange={(e) => setEditingUser({ ...editingUser, is_admin: e.target.checked })}
+              />
+              {lang === 'am' ? 'የፖርታል አስተዳዳሪ' : 'Portal administrator'}
+            </label>
             <input
               type="password"
               minLength={8}
@@ -258,32 +366,27 @@ export default function AdminPortalUsersPanel() {
       {loadingUsers ? (
         <p className="text-center py-8">{lang === 'am' ? 'በመጫን...' : 'Loading...'}</p>
       ) : portalUsers.length === 0 ? (
-        <p className="text-mayor-navy/60 font-amharic text-center py-8">{lang === 'am' ? 'እስካሁን የፖርታል ተጠቃሚ አልተጨመረም' : 'No portal officers yet'}</p>
+        <p className="text-mayor-navy/60 font-amharic text-center py-8">{lang === 'am' ? 'እስካሁን የፖርታል ተጠቃሚ አልተጨመረም' : 'No portal users yet'}</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b">
-                <th className="py-2 px-3">Email</th>
-                <th className="py-2 px-3 font-amharic">{lang === 'am' ? 'ስም' : 'Name'}</th>
-                <th className="py-2 px-3">{lang === 'am' ? 'ክፍል' : 'Dept'}</th>
-                <th className="py-2 px-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {portalUsers.map((user) => (
-                <tr key={user.id} className="border-b border-gray-100">
-                  <td className="py-3 px-3 text-sm">{user.email}</td>
-                  <td className="py-3 px-3 font-amharic">{user.full_name}</td>
-                  <td className="py-3 px-3 text-sm">{getDepartmentDisplayName(user.department, lang)}</td>
-                  <td className="py-3 px-3 flex gap-1">
-                    <button type="button" onClick={() => setEditingUser({ ...user })} className="text-mayor-royal-blue p-1"><Pencil className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => handleDeletePortalUser(user.id)} className="text-red-600 p-1"><Trash2 className="w-4 h-4" /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-lg font-bold text-mayor-navy font-amharic mb-3">
+              {lang === 'am' ? 'የፖርታል አስተዳዳሪዎች' : 'Portal Administrators'}
+            </h3>
+            {renderUserTable(
+              portalAdmins,
+              lang === 'am' ? 'አስተዳዳሪ የለም' : 'No administrators yet',
+            )}
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-mayor-navy font-amharic mb-3">
+              {lang === 'am' ? 'የስራ ክፍል ባለሙያዎች' : 'Department Officers'}
+            </h3>
+            {renderUserTable(
+              portalOfficers,
+              lang === 'am' ? 'ባለሙያ የለም' : 'No officers yet',
+            )}
+          </div>
         </div>
       )}
     </section>

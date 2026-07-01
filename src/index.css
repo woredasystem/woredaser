@@ -4,6 +4,14 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --brand-primary: #004694;
+    --brand-dark: #002d5c;
+    --brand-deep: #003875;
+    --brand-light: #1a6fbf;
+    --brand-ray: #4a9fd4;
+  }
+
   body {
     @apply font-english antialiased bg-white text-mayor-navy;
   }
@@ -42,11 +50,77 @@
     @apply page-card p-6 hover:shadow-md hover:border-mayor-royal-blue/25 transition-all duration-300;
   }
 
-  /* Hero — static brand background */
+  /* Brand sunburst — inspired by official seal / logo radial rays */
+  .brand-sunburst-bg,
   .hero-brand-bg {
-    background-color: #0A2A4A;
+    background-color: var(--brand-primary);
     background-image:
-      linear-gradient(160deg, #0A2A4A 0%, #0D47A1 38%, #1565C0 68%, #1E88E5 100%);
+      repeating-conic-gradient(
+        from -6deg at 50% 56%,
+        rgba(255, 255, 255, 0.12) 0deg 5deg,
+        rgba(255, 255, 255, 0) 5deg 10deg
+      ),
+      radial-gradient(
+        ellipse 92% 88% at 50% 54%,
+        var(--brand-ray) 0%,
+        var(--brand-primary) 38%,
+        var(--brand-deep) 68%,
+        var(--brand-dark) 100%
+      );
+  }
+
+  .brand-sunburst-bg-subtle {
+    background-color: var(--brand-primary);
+    background-image:
+      repeating-conic-gradient(
+        from -6deg at 50% 50%,
+        rgba(255, 255, 255, 0.07) 0deg 5deg,
+        rgba(255, 255, 255, 0) 5deg 10deg
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        var(--brand-light) 0%,
+        var(--brand-primary) 55%,
+        var(--brand-dark) 100%
+      );
+  }
+
+  .brand-sunburst-bg,
+  .brand-sunburst-bg-subtle,
+  .hero-brand-bg {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .brand-sunburst-bg::after,
+  .brand-sunburst-bg-subtle::after,
+  .hero-brand-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 100% 100% at 50% 50%,
+      transparent 35%,
+      rgba(0, 45, 92, 0.4) 100%
+    );
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .brand-sunburst-plain::after {
+    display: none;
+  }
+
+  .brand-sunburst-vignette {
+    background: radial-gradient(
+      ellipse 100% 100% at 50% 50%,
+      transparent 35%,
+      rgba(0, 45, 92, 0.4) 100%
+    );
+  }
+
+  .brand-sunburst-ring {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
   }
 
   .hero-brand-grid {
@@ -58,11 +132,11 @@
   }
 
   .hero-brand-glow-tr {
-    background: radial-gradient(circle at 100% 0%, rgba(30, 136, 229, 0.45) 0%, transparent 55%);
+    background: radial-gradient(circle at 100% 0%, rgba(74, 159, 212, 0.35) 0%, transparent 55%);
   }
 
   .hero-brand-glow-bl {
-    background: radial-gradient(circle at 0% 100%, rgba(13, 71, 161, 0.55) 0%, transparent 50%);
+    background: radial-gradient(circle at 0% 100%, rgba(0, 56, 117, 0.5) 0%, transparent 50%);
   }
 
   .hero-brand-diagonal {
@@ -110,6 +184,68 @@
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);
+  }
+  
+  .glass-panel-light {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 45, 92, 0.07);
+  }
+  
+  .glass-panel-dark {
+    background: rgba(0, 45, 92, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  }
+  
+  .text-gradient-brand {
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-ray) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-light {
+    background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .aurora-bg {
+    position: relative;
+    background: var(--brand-dark);
+    overflow: hidden;
+  }
+  
+  .aurora-bg::before,
+  .aurora-bg::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+    opacity: 0.6;
+    animation: blob 15s infinite alternate ease-in-out;
+  }
+  
+  .aurora-bg::before {
+    background: var(--brand-primary);
+    width: 60vw;
+    height: 60vw;
+    top: -20vw;
+    left: -10vw;
+  }
+  
+  .aurora-bg::after {
+    background: var(--brand-ray);
+    width: 50vw;
+    height: 50vw;
+    bottom: -10vw;
+    right: -10vw;
+    animation-delay: -5s;
   }
 }
 
@@ -242,12 +378,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1565C0;
+  background: #004694;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1E88E5;
+  background: #1a6fbf;
 }
 
 /* Smooth transitions for all interactive elements */

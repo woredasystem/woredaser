@@ -12,7 +12,7 @@ export default function OfficialsSection({ variant = 'full' }) {
 
   const isHomepage = variant === 'homepage'
   const sectionClass = isHomepage
-    ? 'py-12 sm:py-16 scroll-mt-24 bg-white'
+    ? 'py-24 sm:py-32 scroll-mt-24 bg-slate-50/50'
     : 'py-12 sm:py-16 scroll-mt-24 border-t border-mayor-gray-divider mt-12'
 
   return (

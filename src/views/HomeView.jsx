@@ -1,4 +1,4 @@
-import { FileText, Shield, Zap } from 'lucide-react'
+import { FileText, Shield, Zap, ArrowRight, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useLanguage } from '../hooks/useLanguage'
 import { getWoredaLabel, getHeroSubtitle } from '../config/site'
 import AnalyticsBar from '../components/AnalyticsBar'
@@ -18,82 +18,125 @@ export default function HomeView({ onNavigate }) {
     lang === 'am' ? 'ዲጂታል አገልግሎት' : lang === 'om' ? 'Tajaajila Dijitaalaa Kallattiin' : 'Digital Services Live'
 
   const ctaPrimary =
-    lang === 'am' ? 'አገልግሎቶች' : lang === 'om' ? 'Tajaajiloota Jalqabaa' : 'Get Started'
+    lang === 'am' ? 'አገልግሎቶች' : lang === 'om' ? 'Tajaajiloota Jalqabaa' : 'Explore Services'
 
   const ctaSecondary =
-    lang === 'am' ? 'አመራሮች' : lang === 'om' ? 'Hoggantoota' : 'Our Officials'
+    lang === 'am' ? 'አመራሮች' : lang === 'om' ? 'Hoggantoota' : 'Meet the Leaders'
 
   const scrollToOfficials = () => {
     document.getElementById('officials')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   const pills = [
-    { icon: Zap, label: lang === 'am' ? 'ፈጣን' : lang === 'om' ? 'Saffisaa' : 'Fast' },
-    { icon: Shield, label: lang === 'am' ? 'አስተማማኝ' : lang === 'om' ? 'Amanamaa' : 'Secure' },
-    { icon: FileText, label: lang === 'am' ? 'ተደራሽ' : lang === 'om' ? 'Dhaqqabamaa' : 'Accessible' },
+    { icon: Zap, label: lang === 'am' ? 'ፈጣን' : lang === 'om' ? 'Saffisaa' : 'Fast & Seamless' },
+    { icon: Shield, label: lang === 'am' ? 'አስተማማኝ' : lang === 'om' ? 'Amanamaa' : 'Secure Platform' },
+    { icon: FileText, label: lang === 'am' ? 'ተደራሽ' : lang === 'om' ? 'Dhaqqabamaa' : 'Fully Accessible' },
   ]
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 py-28 sm:py-32 bg-mayor-navy">
-        <div className="relative z-10 max-w-3xl mx-auto w-full text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium font-amharic mb-8">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            {liveBadge}
-          </div>
+    <div className="min-h-screen bg-white flex flex-col font-english overflow-x-hidden">
+      {/* Hero Section with Aurora Background */}
+      <section className="aurora-bg min-h-screen flex items-center justify-center px-4 sm:px-6 py-32 relative">
+        {/* Abstract shapes for extra depth */}
+        <div className="absolute top-1/4 left-10 w-32 h-32 bg-brand-ray/20 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute bottom-1/4 right-10 w-48 h-48 bg-white/10 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight font-amharic mb-6">
-            <span className="block">{getWoredaLabel(lang)}</span>
-            <span className="block mt-2 text-mayor-highlight-blue">{digitalServiceLabel}</span>
-          </h1>
-
-          <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto leading-relaxed font-amharic mb-10">
-            {getHeroSubtitle(lang)}
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10">
-            <button
-              type="button"
-              onClick={() => onNavigate('services')}
-              className="w-full sm:w-auto px-8 py-4 bg-white text-mayor-navy rounded-xl font-semibold hover:bg-blue-50 transition-colors font-amharic"
-            >
-              {ctaPrimary}
-            </button>
-            <button
-              type="button"
-              onClick={scrollToOfficials}
-              className="w-full sm:w-auto px-8 py-4 bg-transparent text-white border-2 border-white/40 rounded-xl font-semibold hover:bg-white/10 transition-colors font-amharic"
-            >
-              {ctaSecondary}
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {pills.map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15 text-white/90 text-sm font-amharic"
-              >
-                <Icon className="w-4 h-4 text-mayor-highlight-blue" />
-                {label}
+        <div className="max-w-6xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-10">
+          
+          <div className="lg:col-span-7 text-left space-y-8 animate-fade-in-up">
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full glass-panel-dark text-white/90 text-sm font-semibold tracking-wide border-white/20 shadow-lg">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-            ))}
+              {liveBadge}
+            </div>
+
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight font-amharic drop-shadow-lg">
+              <span className="block mb-2">{getWoredaLabel(lang)}</span>
+              <span className="text-gradient-light block">{digitalServiceLabel}</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-white/80 max-w-xl leading-relaxed font-amharic font-medium">
+              {getHeroSubtitle(lang)}
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
+              <button
+                type="button"
+                onClick={() => onNavigate('services')}
+                className="group w-full sm:w-auto px-8 py-4 bg-white text-brand-dark rounded-xl font-bold text-lg hover:bg-slate-50 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_rgba(255,255,255,0.5)] hover:-translate-y-1 flex items-center justify-center gap-2 font-amharic"
+              >
+                {ctaPrimary}
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button
+                type="button"
+                onClick={scrollToOfficials}
+                className="group w-full sm:w-auto px-8 py-4 bg-transparent text-white border border-white/30 rounded-xl font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-sm flex items-center justify-center gap-2 font-amharic"
+              >
+                {ctaSecondary}
+                <ChevronRight className="w-5 h-5 opacity-70 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-4 pt-6 opacity-90">
+              {pills.map(({ icon: Icon, label }, idx) => (
+                <div key={label} className={`flex items-center gap-2 text-sm text-white/90 font-medium font-amharic animate-fade-in-up delay-${(idx+1)*100}`}>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  {label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 hidden lg:flex justify-center relative animate-float">
+             <div className="relative w-full max-w-md aspect-[4/5] glass-panel-dark rounded-[2rem] border border-white/20 p-8 shadow-2xl overflow-hidden flex flex-col justify-between">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light/30 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-ray/30 rounded-full blur-3xl"></div>
+                
+                <div className="relative z-10 space-y-6">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white leading-tight font-amharic">
+                    {lang === 'am' ? 'የዜጎች አገልግሎት ማዕከል' : 'Citizen Service Center'}
+                  </h3>
+                  <p className="text-white/70 font-amharic leading-relaxed">
+                    {lang === 'am' 
+                      ? 'የወረዳውን አስተዳደር እና አገልግሎቶች በአንድ ቦታ የሚያገኙበት ዘመናዊ ዲጂታል ሥርዓት።' 
+                      : 'A modern digital system where you can access woreda administration and services in one place.'}
+                  </p>
+                </div>
+
+                <div className="relative z-10 space-y-3 mt-8">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-14 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center px-4 gap-4 overflow-hidden group hover:bg-white/10 transition-colors cursor-pointer">
+                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                         <div className="w-2 h-2 rounded-full bg-brand-ray group-hover:scale-150 transition-transform duration-500"></div>
+                      </div>
+                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-brand-ray rounded-full w-2/3 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             </div>
           </div>
         </div>
       </section>
 
-      <AnalyticsBar overlap />
-
-      <ChiefExecutiveSpotlight />
-
-      <MissionVisionSection variant="compact" />
-
-      <OfficialsSection variant="homepage" />
-
-      <ProjectsCarousel
-        onViewAll={() => onNavigate('projects')}
-        onProjectClick={(id) => onNavigate('project', id)}
-      />
+      {/* Main Content Layout */}
+      <div className="relative z-20">
+        <AnalyticsBar overlap />
+        <ChiefExecutiveSpotlight />
+        <MissionVisionSection variant="compact" />
+        <OfficialsSection variant="homepage" />
+        <ProjectsCarousel
+          onViewAll={() => onNavigate('projects')}
+          onProjectClick={(id) => onNavigate('project', id)}
+        />
+      </div>
 
       <Footer />
     </div>

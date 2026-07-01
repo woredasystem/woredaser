@@ -181,7 +181,7 @@ export default function PortalAccess({ onSelectPortal }) {
           <button
             type="button"
             onClick={handleAdminAccess}
-            className="group w-full flex items-center gap-4 bg-mayor-navy hover:bg-mayor-deep-blue text-white rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:shadow-[0_12px_32px_rgba(10,42,74,0.2)] hover:-translate-y-0.5 text-left"
+            className="group w-full flex items-center gap-4 brand-sunburst-bg hover:opacity-95 text-white rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,70,148,0.25)] hover:-translate-y-0.5 text-left"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 group-hover:bg-white/15 transition-colors">
               <Shield className="w-6 h-6" strokeWidth={1.75} />
