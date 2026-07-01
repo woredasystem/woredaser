@@ -1,59 +1,67 @@
 // Routing utilities for complaints and appointments
 
-import { officials } from '../data/officials'
-import { services } from '../data/services'
+import { services as fallbackServices } from '../data/services'
 
-// Map role keys to departments
-export const roleToDepartment = {
-  'trade_head': 'Trade Office',
-  'labor_head': 'Labor & Skills',
-  'civil_head': 'Civil Registration',
-  'ceo': 'Chief Executive',
-  'ceo_office_head': 'Chief Executive Office',
-  'council_speaker': 'Woreda Council'
+let departmentsCache = []
+let servicesCache = fallbackServices
+let sectorsListCache = []
+
+export function setDepartmentsCache(departments) {
+  departmentsCache = departments || []
 }
 
-// Map service types to departments
-export function getDepartmentFromService(serviceType, lang = 'am') {
+export function setServicesCache(catalog, sectorsList) {
+  if (catalog) servicesCache = catalog
+  if (sectorsList) sectorsListCache = sectorsList
+}
+
+function getRoleToDepartmentMap() {
+  const map = {}
+  for (const d of departmentsCache) {
+    map[d.roleKey] = d.department
+  }
+  if (Object.keys(map).length === 0) {
+    return {
+      trade_head: 'Trade Office',
+      labor_head: 'Labor & Skills',
+      civil_head: 'Civil Registration',
+      ceo: 'Chief Executive',
+      ceo_office_head: 'Chief Executive Office',
+      council_speaker: 'Woreda Council',
+    }
+  }
+  return map
+}
+
+function getDepartmentFromSectorKey(sectorKey) {
+  const sector = servicesCache[sectorKey]
+  if (!sector?.departmentRoleKey) return null
+  const roleToDept = getRoleToDepartmentMap()
+  return roleToDept[sector.departmentRoleKey] || null
+}
+
+export const roleToDepartment = new Proxy({}, {
+  get(_, prop) {
+    return getRoleToDepartmentMap()[prop]
+  },
+})
+
+export function getDepartmentFromService(serviceType, lang = 'am', catalog = servicesCache) {
   if (!serviceType) {
     return 'Chief Executive Office'
   }
 
-  // Check all services in each department to find a match
-  // This handles the full service names that are actually stored
-
-  // Check Civil Registration services
-  for (const service of services.civilRegistration.items) {
-    if (service.name[lang] === serviceType) {
-      return 'Civil Registration'
+  for (const [sectorKey, sector] of Object.entries(catalog)) {
+    for (const service of sector.items || []) {
+      if (service.name[lang] === serviceType || service.name.en === serviceType || service.name.am === serviceType) {
+        const fromSector = getDepartmentFromSectorKey(sectorKey)
+        if (fromSector) return fromSector
+      }
     }
   }
 
-  // Check Trade Office services
-  for (const service of services.tradeOffice.items) {
-    if (service.name[lang] === serviceType) {
-      return 'Trade Office'
-    }
-  }
-
-  // Check Labor & Skills services
-  for (const service of services.laborSkills.items) {
-    if (service.name[lang] === serviceType) {
-      return 'Labor & Skills'
-    }
-  }
-
-  // Check Chief Executive Office services
-  for (const service of services.chiefExecutiveOffice.items) {
-    if (service.name[lang] === serviceType) {
-      return 'Chief Executive Office'
-    }
-  }
-
-  // Fallback: Check if service name contains keywords (for backwards compatibility)
   const serviceTypeLower = serviceType.toLowerCase()
 
-  // Civil Registration keywords
   if (serviceTypeLower.includes('ልደት') || serviceTypeLower.includes('birth') ||
     serviceTypeLower.includes('ጋብቻ') || serviceTypeLower.includes('marriage') ||
     serviceTypeLower.includes('ፍች') || serviceTypeLower.includes('divorce') ||
@@ -63,13 +71,11 @@ export function getDepartmentFromService(serviceType, lang = 'am') {
     return 'Civil Registration'
   }
 
-  // Trade Office keywords
   if (serviceTypeLower.includes('ንግድ') || serviceTypeLower.includes('trade') ||
     serviceTypeLower.includes('business') || serviceTypeLower.includes('license')) {
     return 'Trade Office'
   }
 
-  // Labor & Skills keywords
   if (serviceTypeLower.includes('ስራ') || serviceTypeLower.includes('labor') ||
     serviceTypeLower.includes('ክህሎት') || serviceTypeLower.includes('skill') ||
     serviceTypeLower.includes('ኢንተርፕራይዝ') || serviceTypeLower.includes('enterprise') ||
@@ -77,57 +83,52 @@ export function getDepartmentFromService(serviceType, lang = 'am') {
     return 'Labor & Skills'
   }
 
-  // Default to CEO Office
   return 'Chief Executive Office'
 }
 
-// Get department from official name
-export function getDepartmentFromOfficial(officialName, lang = 'am') {
-  const official = officials.find(o =>
+export function getDepartmentFromOfficial(officialName, lang = 'am', officialsList = []) {
+  const official = officialsList.find(o =>
     (lang === 'am' ? o.full_name_am : o.full_name_en) === officialName
   )
 
   if (!official) {
-    return 'Chief Executive Office' // Default
+    return 'Chief Executive Office'
   }
 
-  return roleToDepartment[official.role_key] || 'Chief Executive Office'
+  const roleToDept = getRoleToDepartmentMap()
+  return roleToDept[official.role_key] || 'Chief Executive Office'
 }
 
-// Get role key from official name
-export function getRoleKeyFromOfficial(officialName, lang = 'am') {
-  const official = officials.find(o =>
+export function getRoleKeyFromOfficial(officialName, lang = 'am', officialsList = []) {
+  const official = officialsList.find(o =>
     (lang === 'am' ? o.full_name_am : o.full_name_en) === officialName
   )
 
   return official?.role_key || 'ceo_office_head'
 }
 
-// Get escalation role key based on level and department
 export function getEscalationRoleKey(escalationLevel, department) {
   switch (escalationLevel) {
     case 1:
-      // Level 1: Assigned to department staff (same as initial assignment)
       return getRoleKeyFromDepartment(department)
     case 2:
-      // Level 2: Department Head
       if (department === 'Trade Office') return 'trade_head'
       if (department === 'Civil Registration') return 'civil_head'
       if (department === 'Labor & Skills') return 'labor_head'
       return 'ceo_office_head'
     case 3:
-      // Level 3: CEO Office
       return 'ceo_office_head'
     case 4:
-      // Level 4: Council
       return 'council_speaker'
     default:
       return 'ceo_office_head'
   }
 }
 
-// Get role key from department
 export function getRoleKeyFromDepartment(department) {
+  const match = departmentsCache.find((d) => d.department === department)
+  if (match) return match.roleKey
+
   if (department === 'Trade Office') return 'trade_head'
   if (department === 'Civil Registration') return 'civil_head'
   if (department === 'Labor & Skills') return 'labor_head'
@@ -137,41 +138,44 @@ export function getRoleKeyFromDepartment(department) {
   return 'ceo_office_head'
 }
 
-// Get department display name
 export function getDepartmentDisplayName(department, lang = 'am') {
-  const names = {
-    'Trade Office': {
-      am: 'ንግድ ጽ/ቤት',
-      om: 'Waajjira Daldaalaa',
-      en: 'Trade Office'
-    },
-    'Civil Registration': {
-      am: 'ሲቪል ምዝገባ',
-      om: 'Galmee Siviilii',
-      en: 'Civil Registration'
-    },
-    'Labor & Skills': {
-      am: 'ስራና ክህሎት',
-      om: 'Hojii fi Ogummaa',
-      en: 'Labor & Skills'
-    },
-    'Chief Executive Office': {
-      am: 'ዋና ሥራ አስፈፃሚ ጽ/ቤት',
-      om: 'Waajjira Hojii Raawwachiiftuu Olaanaa',
-      en: 'Chief Executive Office'
-    },
-    'Chief Executive': {
-      am: 'ዋና ሥራ አስፈፃሚ',
-      om: 'Hojii Raawwachiiftuu Olaanaa',
-      en: 'Chief Executive'
-    },
-    'Woreda Council': {
-      am: 'ወረዳ ምክር ቤት',
-      om: 'Mana Maree Aanaa',
-      en: 'Woreda Council'
+  const match = departmentsCache.find(
+    (d) => d.department === department || d.roleKey === department
+  )
+
+  if (match) {
+    if (lang === 'am') return match.departmentAm
+    if (lang === 'om') return match.departmentOm || match.department
+    return match.department
+  }
+
+  const fallback = {
+    'Trade Office': { am: 'ንግድ ጽ/ቤት', om: 'Waajjira Daldaalaa', en: 'Trade Office' },
+    'Civil Registration': { am: 'ሲቪል ምዝገባ', om: 'Galmee Siviilii', en: 'Civil Registration' },
+    'Labor & Skills': { am: 'ስራና ክህሎት', om: 'Hojii fi Ogummaa', en: 'Labor & Skills' },
+    'Chief Executive Office': { am: 'ዋና ሥራ አስፈፃሚ ጽ/ቤት', om: 'Waajjira Hojii Raawwachiiftuu Olaanaa', en: 'Chief Executive Office' },
+    'Chief Executive': { am: 'ዋና ሥራ አስፈፃሚ', om: 'Hojii Raawwachiiftuu Olaanaa', en: 'Chief Executive' },
+    'Woreda Council': { am: 'ወረዳ ምክር ቤት', om: 'Mana Maree Aanaa', en: 'Woreda Council' },
+    'Admin': { am: 'አስተዳደር', om: 'Bulchiinsa', en: 'Admin' },
+  }
+
+  return fallback[department]?.[lang] || department
+}
+
+export function getBookableServices(catalog, settings, lang = 'am') {
+  const keys = settings?.bookableSectorKeys || ['civilRegistration', 'tradeOffice', 'laborSkills']
+  const items = []
+
+  for (const key of keys) {
+    const sector = catalog[key]
+    if (!sector) continue
+    for (const item of sector.items || []) {
+      if (item.isBookable === false) continue
+      items.push(item)
     }
   }
 
-  return names[department]?.[lang] || department
+  return items
 }
 
+export { sectorsListCache }

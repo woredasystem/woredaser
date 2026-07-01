@@ -1,11 +1,11 @@
-# Quick Fix: Chief Executive Login Error
+﻿# Quick Fix: Chief Executive Login Error
 
 ## Problem
 Getting `400 Bad Request` error when trying to login with `Chief2025!` password.
 
 ## Solution
 
-The user `chief.executive@woreda9.gov.et` doesn't exist in Supabase Auth yet. Create it now:
+The user `chief.executive@woreda.gov.et` doesn't exist in Supabase Auth yet. Create it now:
 
 ### Step 1: Create Auth User
 
@@ -13,7 +13,7 @@ The user `chief.executive@woreda9.gov.et` doesn't exist in Supabase Auth yet. Cr
 2. Navigate to **Authentication** → **Users**
 3. Click **"Add user"** → **"Create new user"**
 4. Fill in:
-   - **Email**: `chief.executive@woreda9.gov.et`
+   - **Email**: `chief.executive@woreda.gov.et`
    - **Password**: `Chief2025!`
    - **Auto Confirm**: ✅ **CHECK THIS BOX** (very important!)
 5. Click **"Create user"**
@@ -25,8 +25,8 @@ The user `chief.executive@woreda9.gov.et` doesn't exist in Supabase Auth yet. Cr
 
 ```sql
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'chief.executive@woreda9.gov.et')
-WHERE email = 'chief.executive@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'chief.executive@woreda.gov.et')
+WHERE email = 'chief.executive@woreda.gov.et';
 ```
 
 ### Step 3: Verify
@@ -41,7 +41,7 @@ SELECT
   CASE WHEN pu.user_id IS NOT NULL THEN '✅ Ready' ELSE '❌ Not Linked' END as status
 FROM portal_users pu
 LEFT JOIN auth.users au ON pu.user_id = au.id
-WHERE pu.email = 'chief.executive@woreda9.gov.et';
+WHERE pu.email = 'chief.executive@woreda.gov.et';
 ```
 
 You should see:
@@ -55,7 +55,7 @@ Now try logging in with:
 - **Password**: `Chief2025!`
 
 Or with email:
-- **Email**: `chief.executive@woreda9.gov.et`
+- **Email**: `chief.executive@woreda.gov.et`
 - **Password**: `Chief2025!`
 
 ## Alternative: Use Script
@@ -71,7 +71,7 @@ This will create ALL missing users at once.
 ## Still Not Working?
 
 1. Check browser console for detailed error
-2. Verify email is exactly: `chief.executive@woreda9.gov.et` (with dot, not underscore)
+2. Verify email is exactly: `chief.executive@woreda.gov.et` (with dot, not underscore)
 3. Make sure password is exactly: `Chief2025!` (case sensitive)
 4. Check Supabase Dashboard → Authentication → Users to see if user exists
 5. Check if `email_confirmed_at` is set (should not be null)

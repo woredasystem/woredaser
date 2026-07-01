@@ -1,16 +1,16 @@
 // Supabase Authentication utility for internal portals
-// Improved version with caching, refresh handling, and error recovery
 import { supabase } from '../lib/supabase'
+import { getPortalEmail } from '../config/site'
 
 // Map Amharic department name directly to email (frontend mapping - no DB query needed)
 const departmentToEmailMap = {
-  'ንግድ ጽ/ቤት': 'trade@woreda9.gov.et',
-  'ሲቪል ምዝገባ': 'civil@woreda9.gov.et',
-  'ስራና ክህሎት': 'labor@woreda9.gov.et',
-  'ዋና ሥራ አስፈፃሚ ጽ/ቤት': 'ceo@woreda9.gov.et',
-  'ዋና ሥራ አስፈፃሚ': 'chief.executive@woreda9.gov.et',
-  'ወረዳ ምክር ቤት': 'council.speaker@woreda9.gov.et',
-  'አስተዳደር': 'admin@woreda9.gov.et'
+  'ንግድ ጽ/ቤት': getPortalEmail('trade'),
+  'ሲቪል ምዝገባ': getPortalEmail('civil'),
+  'ስራና ክህሎት': getPortalEmail('labor'),
+  'ዋና ሥራ አስፈፃሚ ጽ/ቤት': getPortalEmail('ceo'),
+  'ዋና ሥራ አስፈፃሚ': getPortalEmail('chief.executive'),
+  'ወረዳ ምክር ቤት': getPortalEmail('council.speaker'),
+  'አስተዳደር': getPortalEmail('admin')
 }
 
 // Map Amharic department name to English department name
@@ -90,7 +90,7 @@ export async function login(departmentNameOrEmail, password) {
       targetDepartment = getDepartmentFromAmharic(departmentNameOrEmail)
     } else {
       // Assume it's an email
-      email = departmentNameOrEmail
+      email = departmentNameOrEmail.trim().toLowerCase()
     }
 
     // Sign in with Supabase Auth with retry

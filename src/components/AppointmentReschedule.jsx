@@ -331,6 +331,7 @@ export default function AppointmentReschedule({ appointment, onClose, onSuccess 
                     .from('appointments')
                     .update({
                       appointment_date: newDate,
+                      status: 'Rescheduled',
                       original_appointment_date: appointment.original_appointment_date || appointment.appointment_date,
                       reschedule_note: rescheduleNote,
                       rescheduled_at: new Date().toISOString(),
@@ -342,7 +343,7 @@ export default function AppointmentReschedule({ appointment, onClose, onSuccess 
                   if (error) throw error
 
                   showToast(
-                    lang === 'am' ? 'ቀጠሮው በተሳካ ሁኔታ እንደገና ተዘጋጅቷል!' : 'Appointment rescheduled successfully!',
+                    lang === 'am' ? 'ቀጠሮው በተሳካ ሁኔታ ቀኑ ተቀይሯል!' : 'Appointment rescheduled successfully!',
                     'success',
                     6000
                   )

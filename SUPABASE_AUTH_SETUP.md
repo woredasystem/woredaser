@@ -1,4 +1,4 @@
-# Supabase Authentication Setup Guide
+﻿# Supabase Authentication Setup Guide
 
 ## Step 1: Create Auth Users in Supabase Dashboard
 
@@ -10,27 +10,27 @@
 ### Portal Users:
 
 1. **Trade Office**
-   - Email: `trade@woreda9.gov.et`
+   - Email: `trade@woreda.gov.et`
    - Password: `Trade2025!` (or your secure password)
    - Auto Confirm: ✅ (check this box)
 
 2. **Civil Registration**
-   - Email: `civil@woreda9.gov.et`
+   - Email: `civil@woreda.gov.et`
    - Password: `Civil2025!` (or your secure password)
    - Auto Confirm: ✅
 
 3. **Labor & Skills**
-   - Email: `labor@woreda9.gov.et`
+   - Email: `labor@woreda.gov.et`
    - Password: `Labor2025!` (or your secure password)
    - Auto Confirm: ✅
 
 4. **CEO Office**
-   - Email: `ceo@woreda9.gov.et`
+   - Email: `ceo@woreda.gov.et`
    - Password: `CEO2025!` (or your secure password)
    - Auto Confirm: ✅
 
 5. **Admin**
-   - Email: `admin@woreda9.gov.et`
+   - Email: `admin@woreda.gov.et`
    - Password: `Admin2025!` (or your secure password)
    - Auto Confirm: ✅
 
@@ -41,28 +41,28 @@ After creating the auth users, run this SQL in the Supabase SQL Editor to link t
 ```sql
 -- Link Trade Office user
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda9.gov.et')
-WHERE email = 'trade@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda.gov.et')
+WHERE email = 'trade@woreda.gov.et';
 
 -- Link Civil Registration user
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda9.gov.et')
-WHERE email = 'civil@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda.gov.et')
+WHERE email = 'civil@woreda.gov.et';
 
 -- Link Labor & Skills user
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda9.gov.et')
-WHERE email = 'labor@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda.gov.et')
+WHERE email = 'labor@woreda.gov.et';
 
 -- Link CEO Office user
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda9.gov.et')
-WHERE email = 'ceo@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda.gov.et')
+WHERE email = 'ceo@woreda.gov.et';
 
 -- Link Admin user
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda9.gov.et')
-WHERE email = 'admin@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda.gov.et')
+WHERE email = 'admin@woreda.gov.et';
 ```
 
 ## Step 3: Verify Setup
@@ -114,13 +114,13 @@ To add a new portal user:
 ```sql
 INSERT INTO portal_users (email, username, full_name, department, role_key, is_admin, user_id)
 VALUES (
-  'newuser@woreda9.gov.et',
+  'newuser@woreda.gov.et',
   'newuser',
   'New User Name',
   'Department Name',
   'role_key',
   false,
-  (SELECT id FROM auth.users WHERE email = 'newuser@woreda9.gov.et')
+  (SELECT id FROM auth.users WHERE email = 'newuser@woreda.gov.et')
 );
 ```
 

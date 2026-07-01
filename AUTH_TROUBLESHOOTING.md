@@ -1,4 +1,4 @@
-# Authentication Troubleshooting Guide
+﻿# Authentication Troubleshooting Guide
 
 ## Error: 400 Bad Request on Login
 
@@ -29,7 +29,7 @@ You have two options:
 1. Go to Supabase Dashboard → **Authentication** → **Users**
 2. Click **"Add user"** → **"Create new user"**
 3. Fill in:
-   - **Email**: `chief.executive@woreda9.gov.et`
+   - **Email**: `chief.executive@woreda.gov.et`
    - **Password**: `Chief2025!`
    - **Auto Confirm**: ✅ (check this box - important!)
 4. Click **"Create user"**
@@ -39,8 +39,8 @@ You have two options:
    - Run this query:
    ```sql
    UPDATE portal_users 
-   SET user_id = (SELECT id FROM auth.users WHERE email = 'chief.executive@woreda9.gov.et')
-   WHERE email = 'chief.executive@woreda9.gov.et';
+   SET user_id = (SELECT id FROM auth.users WHERE email = 'chief.executive@woreda.gov.et')
+   WHERE email = 'chief.executive@woreda.gov.et';
    ```
 
 ### Verify User Exists
@@ -55,11 +55,11 @@ SELECT
   CASE WHEN pu.user_id IS NOT NULL THEN '✅ Linked' ELSE '❌ Not Linked' END as status
 FROM auth.users au
 LEFT JOIN portal_users pu ON au.id = pu.user_id
-WHERE au.email = 'chief.executive@woreda9.gov.et';
+WHERE au.email = 'chief.executive@woreda.gov.et';
 ```
 
 You should see:
-- Email: `chief.executive@woreda9.gov.et`
+- Email: `chief.executive@woreda.gov.et`
 - `email_confirmed_at`: Should have a timestamp (not null)
 - Status: `✅ Linked`
 
@@ -70,14 +70,14 @@ You should see:
 ```sql
 UPDATE auth.users 
 SET email_confirmed_at = NOW() 
-WHERE email = 'chief.executive@woreda9.gov.et';
+WHERE email = 'chief.executive@woreda.gov.et';
 ```
 
 #### Issue 2: User exists but not linked
 **Solution**: Run the UPDATE query from Option 2 above to link the user_id.
 
 #### Issue 3: Wrong email format
-**Check**: Make sure you're using `chief.executive@woreda9.gov.et` (with the dot, not underscore)
+**Check**: Make sure you're using `chief.executive@woreda.gov.et` (with the dot, not underscore)
 
 #### Issue 4: Password doesn't match
 **Solution**: Reset the password in Supabase Dashboard → Authentication → Users → Edit user → Reset password
@@ -88,13 +88,13 @@ Make sure all these users exist:
 
 | Email | Password | Department |
 |-------|----------|------------|
-| `trade@woreda9.gov.et` | `Trade2025!` | Trade Office |
-| `civil@woreda9.gov.et` | `Civil2025!` | Civil Registration |
-| `labor@woreda9.gov.et` | `Labor2025!` | Labor & Skills |
-| `ceo@woreda9.gov.et` | `CEO2025!` | CEO Office |
-| `chief.executive@woreda9.gov.et` | `Chief2025!` | Chief Executive |
-| `council.speaker@woreda9.gov.et` | `Council2025!` | Woreda Council |
-| `admin@woreda9.gov.et` | `Admin2025!` | Admin |
+| `trade@woreda.gov.et` | `Trade2025!` | Trade Office |
+| `civil@woreda.gov.et` | `Civil2025!` | Civil Registration |
+| `labor@woreda.gov.et` | `Labor2025!` | Labor & Skills |
+| `ceo@woreda.gov.et` | `CEO2025!` | CEO Office |
+| `chief.executive@woreda.gov.et` | `Chief2025!` | Chief Executive |
+| `council.speaker@woreda.gov.et` | `Council2025!` | Woreda Council |
+| `admin@woreda.gov.et` | `Admin2025!` | Admin |
 
 ### Quick Verification Script
 

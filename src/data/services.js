@@ -155,7 +155,7 @@ export const services = {
           en: 'New Unmarried Status Certificate Service, Renewal Unmarried Status, Correction Unmarried Status, Duplicate Unmarried Status'
         },
         requirements: {
-          am: 'አለማግባቱን /ቷን ወይም ስለመፍታቱ/ቷን በቅጽ ላይ ተመዝግቦ መገኘት አለባቸው። በቅጽ ላይ የተመዘገበ የጋብቻ ሁኔታ ስተት ከሆነ/ያገባውን ያላገባ፡ ያላገባውን ያገባ በሚል ተገልጾ ከሆነ/ ጉዳዩን የሚያውቁ 3 ምስክሮችን በማቅረብ እና የቃለ መሃላ ቅጽ በመሙላት ግዴታ መግባት አለባቸው። ከኢትዮጵያ ውጭ የሚኖሩ ዜጎች ማስረጃውን ከኢትዮጵያ ከወጡት ቀን ጀምሮ ያለውን በሚመለከት ያላገባ ስለመሆናቸው በውጭ ጉዳይ ሚኒስቴር የተረጋገጠ እና በሰነዶች ማረጋገጫ የተረጋጠ እና የተመዘገበ ማስረጃ ማቅረብ አለባቸው',
+          am: 'አለማግባቱን /ቷን ወይም ስለመፍታቱ/ቷን በቅጽ ላይ ተመዝግቦ መገኘት አለባቸው። በቅጽ ላይ የተመዘገበ የጋብቻ ሁኔታ ስተት ከሆነ/ያገባውን ያላገባ፡ ያላገባውን ያገባ በሚል ተገልጾ ከሆነ/ ጉዳዩን የሚያውቁ 3 ምስክሮችን በማቅረብ እና የቃለ መሃላ ቅጽ በመሙላት ግዴታ መግባት አለባቸው። ከኢትዮጵያ ውጭ የሚኖሩ ዜጎች ማስረጃውን ከኢትዮጵያ ከወጡት ቀን ጀምሮ ያለውን በሚመለከት ያላገባ ስለመሆናቸው በውጭ ጉዳይ ሚኒስቴር በሂደት ላይ እና በሰነዶች ማረጋገጫ የተረጋጠ እና የተመዘገበ ማስረጃ ማቅረብ አለባቸው',
           en: 'Must be registered in form showing unmarried status or divorce status. If marital status in form shows married/unmarried: unmarried/married, must provide 3 witnesses who know the case and fill oath form. For citizens living outside Ethiopia, must provide proof authenticated by Ministry of Foreign Affairs and verified and registered by Document Authentication Agency regarding unmarried status since leaving Ethiopia.'
         },
         fee: 200,

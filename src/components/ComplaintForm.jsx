@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useLanguage } from '../hooks/useLanguage'
 import { supabase } from '../lib/supabase'
-import { complaintOfficials } from '../data/officials'
+import { useOfficials } from '../hooks/useOfficials'
 import { X, Check } from 'lucide-react'
 import ImageModal from './ImageModal'
 import ComplaintSuccessModal from './ComplaintSuccessModal'
 import { getDepartmentFromOfficial, getRoleKeyFromOfficial } from '../utils/routing'
 import { showToast } from './ToastContainer'
+import { isValidEthiopianMobile, formatPhoneHint } from '../utils/phone'
 
-export default function ComplaintForm({ onClose, onSuccess }) {
+export default function ComplaintForm({ onClose, onSuccess, embedded = false }) {
   const { t, lang } = useLanguage()
+  const { complaintOfficials } = useOfficials()
   const [formData, setFormData] = useState({
     // Section 1: Complainant Information
     complainant_name: '',
@@ -28,6 +30,7 @@ export default function ComplaintForm({ onClose, onSuccess }) {
     complaint_main_content: '',
     requested_solution: '',
     complainant_signature: '',
+    complainant_signature_verified: false,
     target_official: '',
   })
   const [loading, setLoading] = useState(false)
@@ -57,6 +60,19 @@ export default function ComplaintForm({ onClose, onSuccess }) {
       )
       return
     }
+
+    if (!isValidEthiopianMobile(formData.complainant_phone)) {
+      showToast(
+        lang === 'am'
+          ? `ትክክለኛ ስልክ ያስገቡ (${formatPhoneHint(lang)})`
+          : lang === 'om'
+            ? `Lakkoofsa bilbila sirrii galchaa (${formatPhoneHint(lang)})`
+            : `Enter a valid phone number (${formatPhoneHint(lang)})`,
+        'warning',
+        5000
+      )
+      return
+    }
     
     setLoading(true)
 
@@ -78,8 +94,8 @@ export default function ComplaintForm({ onClose, onSuccess }) {
       }
 
       // Determine department and role key from target official
-      const assignedDepartment = getDepartmentFromOfficial(formData.target_official, lang)
-      const assignedToRoleKey = getRoleKeyFromOfficial(formData.target_official, lang)
+      const assignedDepartment = getDepartmentFromOfficial(formData.target_official, lang, complaintOfficials)
+      const assignedToRoleKey = getRoleKeyFromOfficial(formData.target_official, lang, complaintOfficials)
 
       console.log('Complaint routing:', {
         target_official: formData.target_official,
@@ -90,7 +106,7 @@ export default function ComplaintForm({ onClose, onSuccess }) {
 
       const insertData = {
         complainant_name: formData.complainant_name,
-        complainant_phone: formData.complainant_phone,
+        complainant_phone: formData.complainant_phone.replace(/\s/g, ''),
         complainant_age: formData.complainant_age ? parseInt(formData.complainant_age) : null,
         complainant_gender: formData.complainant_gender || null,
         submission_type: formData.submission_type,
@@ -115,6 +131,7 @@ export default function ComplaintForm({ onClose, onSuccess }) {
         assigned_department: assignedDepartment,
         assigned_to_role_key: assignedToRoleKey,
         complaint_submission_date: new Date().toISOString(),
+        preferred_lang: lang === 'om' ? 'om' : lang === 'en' ? 'en' : 'am',
       }
 
       console.log('Submitting complaint with data:', insertData)
@@ -184,20 +201,27 @@ export default function ComplaintForm({ onClose, onSuccess }) {
     }
   }
 
-  return (
-    <>
-    <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 ${showSuccessModal ? 'hidden' : ''}`}>
-      <div className="gov-card max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="gov-header rounded-t-gov-xl p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold font-amharic">
-            {t('form01Title')}
-          </h2>
-          <button onClick={onClose} className="text-white hover:text-white/70">
-            <X className="w-6 h-6" />
-          </button>
+  const formCard = (
+      <div className={`${embedded ? 'bg-white border-2 border-mayor-gray-divider rounded-2xl overflow-hidden' : 'gov-card max-w-4xl w-full max-h-[90vh] overflow-y-auto'}`}>
+        <div className={`${embedded ? 'px-6 py-5 border-b border-mayor-navy/10 flex justify-between items-center bg-slate-50/80' : 'gov-header rounded-t-gov-xl p-6 flex justify-between items-center'}`}>
+          <div>
+            <h2 className={`text-xl sm:text-2xl font-bold font-amharic ${embedded ? 'text-mayor-navy' : ''}`}>
+              {t('form01Title')}
+            </h2>
+            {embedded && (
+              <p className="mt-1 text-sm text-mayor-navy/50 font-amharic">
+                {lang === 'am' ? 'ሁሉንም አስፈላጊ መረጃዎችን በትክክል ይሙሉ' : 'Fill in all required information accurately'}
+              </p>
+            )}
+          </div>
+          {!embedded && (
+            <button onClick={onClose} className="text-white hover:text-white/70">
+              <X className="w-6 h-6" />
+            </button>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white">
+        <form onSubmit={handleSubmit} className={`p-6 sm:p-8 space-y-6 bg-white ${embedded ? '' : 'max-h-[70vh] overflow-y-auto'}`}>
           {/* Section 1: Complainant Information */}
           <div className="border-b-2 border-mayor-gray-divider pb-4">
             <h3 className="text-lg font-bold text-mayor-navy mb-4 font-amharic">
@@ -361,6 +385,9 @@ export default function ComplaintForm({ onClose, onSuccess }) {
                 <input
                   type="tel"
                   required
+                  inputMode="numeric"
+                  pattern="09[0-9]{8}"
+                  placeholder={formatPhoneHint(lang)}
                   value={formData.complainant_phone}
                   onChange={(e) => setFormData({ ...formData, complainant_phone: e.target.value })}
                   className="w-full px-4 py-2 rounded-gov bg-white border border-mayor-gray-divider text-mayor-navy placeholder-mayor-navy/40 focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue focus:border-mayor-royal-blue"
@@ -541,27 +568,30 @@ export default function ComplaintForm({ onClose, onSuccess }) {
             </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 pt-4 sticky bottom-0 bg-white pb-1 border-t border-mayor-navy/8 -mx-6 sm:-mx-8 px-6 sm:px-8 pt-5">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 gov-button py-3 disabled:opacity-50"
+              className="flex-1 bg-mayor-navy hover:bg-mayor-deep-blue text-white py-3 rounded-xl font-semibold font-amharic transition-colors disabled:opacity-50"
             >
               {loading ? (lang === 'am' ? 'በመላክ ላይ...' : 'Submitting...') : t('submit')}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-white border border-mayor-gray-divider text-mayor-navy rounded-gov hover:bg-mayor-gray-divider transition-all"
-            >
-              {t('cancel')}
-            </button>
+            {!embedded && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 bg-white border-2 border-mayor-gray-divider text-mayor-navy rounded-xl hover:bg-slate-50 transition-all font-amharic"
+              >
+                {t('cancel')}
+              </button>
+            )}
           </div>
         </form>
       </div>
-    </div>
-      
-      {/* Image Modal */}
+  )
+
+  const modals = (
+    <>
       {selectedImage && (
         <ImageModal
           imageUrl={selectedImage}
@@ -569,8 +599,6 @@ export default function ComplaintForm({ onClose, onSuccess }) {
           onClose={() => setSelectedImage(null)}
         />
       )}
-
-      {/* Success Modal - Render outside form container */}
       {showSuccessModal && submittedData && (
         <ComplaintSuccessModal
           ticketNumber={submittedData.ticket_number}
@@ -578,15 +606,31 @@ export default function ComplaintForm({ onClose, onSuccess }) {
           onClose={() => {
             setShowSuccessModal(false)
             setSubmittedData(null)
-            // Pass unique code to onSuccess callback for auto-fill when modal closes
             onSuccess?.(submittedData.unique_code)
-            // Close the form after a short delay
-            setTimeout(() => {
-              onClose()
-            }, 100)
+            if (!embedded) {
+              setTimeout(() => onClose(), 100)
+            }
           }}
         />
       )}
+    </>
+  )
+
+  if (embedded) {
+    return (
+      <>
+        {formCard}
+        {modals}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 ${showSuccessModal ? 'hidden' : ''}`}>
+        {formCard}
+      </div>
+      {modals}
     </>
   )
 }

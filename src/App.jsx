@@ -6,6 +6,8 @@ import ServicesView from './views/ServicesView'
 import SectorServicesView from './views/SectorServicesView'
 import ComplaintsView from './views/ComplaintsView'
 import AppointmentsView from './views/AppointmentsView'
+import ProjectsView from './views/ProjectsView'
+import ProjectDetailView from './views/ProjectDetailView'
 import LeadersView from './views/LeadersView'
 import PortalAccess from './views/PortalAccess'
 import PortalLogin from './components/PortalLogin'
@@ -15,6 +17,13 @@ import ToastContainer from './components/ToastContainer'
 import { getCurrentUser, logout, onAuthStateChange } from './utils/auth'
 import { supabase } from './lib/supabase'
 import { LanguageProvider } from './hooks/useLanguage'
+import { OfficialsProvider } from './hooks/useOfficials'
+import { DepartmentsProvider } from './hooks/useDepartments'
+import { ServicesProvider } from './hooks/useServices'
+import { AppointmentSettingsProvider } from './hooks/useAppointmentSettings'
+import { SiteContentProvider } from './hooks/useSiteContent'
+import { ProjectsProvider } from './hooks/useProjects'
+import { SiteStatsProvider } from './hooks/useSiteStats'
 
 function AppContent() {
   const navigate = useNavigate()
@@ -241,14 +250,18 @@ function AppContent() {
         <Route path="/" element={
           <>
             {portalMode === 'public' && <Header onPortalAccess={() => navigate('/portal')} />}
-            <HomeView onNavigate={(view) => {
+            <HomeView onNavigate={(view, id) => {
               const routes = {
-                'services': '/services',
-                'complaints': '/complaints',
-                'appointments': '/appointments',
-                'leaders': '/leaders'
+                services: '/services',
+                complaints: '/complaints',
+                appointments: '/appointments',
+                projects: '/projects',
               }
-              navigate(routes[view] || '/')
+              if (view === 'project' && id) {
+                navigate(`/projects/${id}`)
+              } else {
+                navigate(routes[view] || '/')
+              }
             }} />
           </>
         } />
@@ -277,6 +290,21 @@ function AppContent() {
           <>
             {portalMode === 'public' && <Header onPortalAccess={() => navigate('/portal')} />}
             <AppointmentsView onBack={() => navigate('/')} />
+          </>
+        } />
+        <Route path="/projects" element={
+          <>
+            {portalMode === 'public' && <Header onPortalAccess={() => navigate('/portal')} />}
+            <ProjectsView
+              onBack={() => navigate('/')}
+              onProjectClick={(id) => navigate(`/projects/${id}`)}
+            />
+          </>
+        } />
+        <Route path="/projects/:projectId" element={
+          <>
+            {portalMode === 'public' && <Header onPortalAccess={() => navigate('/portal')} />}
+            <ProjectDetailViewWrapper />
           </>
         } />
         <Route path="/leaders" element={
@@ -327,6 +355,17 @@ function SectorServicesViewWrapper() {
   const { sectorKey } = useParams()
   const navigate = useNavigate()
   return <SectorServicesView sectorKey={sectorKey} onBack={() => navigate('/services')} />
+}
+
+function ProjectDetailViewWrapper() {
+  const { projectId } = useParams()
+  const navigate = useNavigate()
+  return (
+    <ProjectDetailView
+      projectId={projectId}
+      onBack={() => navigate('/projects')}
+    />
+  )
 }
 
 // Wrapper component for PortalLogin to get params
@@ -437,9 +476,23 @@ function ProtectedDepartmentRoute({ auth, onBack, authLoading }) {
 function App() {
   return (
     <LanguageProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <DepartmentsProvider>
+        <ServicesProvider>
+          <AppointmentSettingsProvider>
+            <SiteContentProvider>
+              <ProjectsProvider>
+                <SiteStatsProvider>
+                  <OfficialsProvider>
+                    <BrowserRouter>
+                      <AppContent />
+                    </BrowserRouter>
+                  </OfficialsProvider>
+                </SiteStatsProvider>
+              </ProjectsProvider>
+            </SiteContentProvider>
+          </AppointmentSettingsProvider>
+        </ServicesProvider>
+      </DepartmentsProvider>
     </LanguageProvider>
   )
 }

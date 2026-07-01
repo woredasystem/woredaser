@@ -1,4 +1,6 @@
-# 🚀 Quick Start: Create Portal Users
+﻿# 🚀 Quick Start: Create Portal Users
+
+> **All login emails and passwords:** see [CREDENTIALS.md](./CREDENTIALS.md)
 
 ## Current Status
 ✅ Portal users table is ready (5 users)
@@ -31,35 +33,35 @@ This will:
 
 | Email | Password | Auto Confirm |
 |-------|----------|--------------|
-| trade@woreda9.gov.et | Trade2025! | ✅ |
-| civil@woreda9.gov.et | Civil2025! | ✅ |
-| labor@woreda9.gov.et | Labor2025! | ✅ |
-| ceo@woreda9.gov.et | CEO2025! | ✅ |
-| admin@woreda9.gov.et | Admin2025! | ✅ |
+| trade@woreda.gov.et | Trade2025! | ✅ |
+| civil@woreda.gov.et | Civil2025! | ✅ |
+| labor@woreda.gov.et | Labor2025! | ✅ |
+| ceo@woreda.gov.et | CEO2025! | ✅ |
+| admin@woreda.gov.et | Admin2025! | ✅ |
 
 ### Step 2: Link Users (SQL Editor)
 Run this SQL:
 
 ```sql
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda9.gov.et')
-WHERE email = 'trade@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda.gov.et')
+WHERE email = 'trade@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda9.gov.et')
-WHERE email = 'civil@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda.gov.et')
+WHERE email = 'civil@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda9.gov.et')
-WHERE email = 'labor@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda.gov.et')
+WHERE email = 'labor@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda9.gov.et')
-WHERE email = 'ceo@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda.gov.et')
+WHERE email = 'ceo@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda9.gov.et')
-WHERE email = 'admin@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda.gov.et')
+WHERE email = 'admin@woreda.gov.et';
 ```
 
 ### Step 3: Verify

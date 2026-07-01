@@ -1,4 +1,4 @@
-# Authentication System Recovery Backup
+﻿# Authentication System Recovery Backup
 
 **Created:** $(date)
 **Purpose:** Recovery point before auth system improvements
@@ -86,7 +86,7 @@ ORDER BY tablename, policyname;
 
 - Trade Office: `ንግድ ጽ/ቤት` / password
 - Admin: `አስተዳደር` / password
-- Email: `admin@woreda9.gov.et` / password
+- Email: `admin@woreda.gov.et` / password
 
 
 

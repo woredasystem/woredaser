@@ -1,4 +1,4 @@
--- Woreda 9 Digital Portal Database Schema
+-- Woreda Digital Portal Database Schema
 -- Run this in your Supabase SQL Editor
 
 -- Table 1: complaints (Grievance Tracking)
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   citizen_name TEXT NOT NULL,
   service_type TEXT NOT NULL,
   appointment_date TIMESTAMP WITH TIME ZONE NOT NULL,
-  status TEXT NOT NULL DEFAULT 'Confirmed' CHECK (status IN ('Confirmed', 'Completed', 'Missed'))
+  status TEXT NOT NULL DEFAULT 'Confirmed' CHECK (status IN ('Confirmed', 'Rescheduled', 'Completed', 'Missed'))
 );
 
 -- Table 3: officials (Leadership Directory)
@@ -37,15 +37,8 @@ CREATE TABLE IF NOT EXISTS officials (
   image_url TEXT
 );
 
--- Insert officials data
-INSERT INTO officials (full_name_am, full_name_en, title_am, title_en, role_key) VALUES
-('ግርማ በቀለ', 'Girma Bekele', 'የንግድ ጽ/ቤት ኃላፊ', 'Head, Trade Office', 'trade_head'),
-('ሻውል ታደሰ', 'Shawul Tadesse', 'የስራና ክህሎት ጽ/ቤት ኃላፊ', 'Head, Labor & Skills Office', 'labor_head'),
-('ጋዲሳ ኢሉኩ', 'Gadisa Iluku', 'የሲቪል ምዝገባ አገልግሎት ኃላፊ', 'Head, Civil Registration Agency', 'civil_head'),
-('ጫልቱ አያና', 'Chaltu Ayana', 'ዋና ሥራ አስፈፃሚ (ወረዳ 9)', 'Chief Executive (Woreda 9)', 'ceo'),
-('ለሊሳ ሲሪካ', 'Lelisa Sirika', 'የዋና ሥራ አስፈፃሚ ጽ/ቤት ኃላፊ', 'Head, Chief Executive Office', 'ceo_office_head'),
-('በየነች አንበሱ', 'Beyenech Anbesu', 'የወረዳ ምክር ቤት ተወካይ', 'Woreda Council Speaker', 'council_speaker')
-ON CONFLICT (role_key) DO NOTHING;
+-- Officials are managed by admin via the Admin Portal (no seed data).
+-- Bootstrap: create the first admin in Supabase Auth, then insert one row in portal_users with is_admin = true.
 
 -- Create function for 5-day escalation (to be called by cron job)
 CREATE OR REPLACE FUNCTION escalate_complaints()
@@ -190,6 +183,50 @@ CREATE POLICY "Public can read portal_users for login" ON portal_users
 CREATE POLICY "Users can read own portal_user" ON portal_users
   FOR SELECT USING (user_id = auth.uid());
 
+-- Admins can manage portal users
+CREATE POLICY "Admins can insert portal_users" ON portal_users
+  FOR INSERT WITH CHECK (
+    auth.uid() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM portal_users WHERE user_id = auth.uid() AND is_admin = TRUE
+    )
+  );
+
+CREATE POLICY "Admins can update portal_users" ON portal_users
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM portal_users WHERE user_id = auth.uid() AND is_admin = TRUE
+    )
+  );
+
+CREATE POLICY "Admins can delete portal_users" ON portal_users
+  FOR DELETE USING (
+    auth.uid() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM portal_users WHERE user_id = auth.uid() AND is_admin = TRUE
+    )
+  );
+
+-- Admins can manage officials
+CREATE POLICY "Admins can insert officials" ON officials
+  FOR INSERT WITH CHECK (
+    auth.uid() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM portal_users WHERE user_id = auth.uid() AND is_admin = TRUE
+    )
+  );
+
+CREATE POLICY "Admins can update officials" ON officials
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM portal_users WHERE user_id = auth.uid() AND is_admin = TRUE
+    )
+  );
+
+CREATE POLICY "Admins can delete officials" ON officials
+  FOR DELETE USING (
+    auth.uid() IS NOT NULL AND EXISTS (
+      SELECT 1 FROM portal_users WHERE user_id = auth.uid() AND is_admin = TRUE
+    )
+  );
+
 -- ============================================================================
 -- Update RLS Policies for complaints
 -- ============================================================================
@@ -237,26 +274,13 @@ CREATE POLICY "Portal users can update department appointments" ON appointments
     auth.uid() IS NOT NULL AND check_portal_user_access(assigned_department)
   );
 
--- ============================================================================
--- Insert Initial Portal Users (if they don't exist)
--- ============================================================================
--- Note: These users need to be created in Supabase Auth first
--- Then their user_id will be linked via the create-portal-users.js script
-
-INSERT INTO portal_users (email, username, full_name, department, department_am, role_key, is_admin) VALUES
-('trade@woreda9.gov.et', 'trade', 'Trade Office Staff', 'Trade Office', 'ንግድ ጽ/ቤት', 'trade_head', false),
-('civil@woreda9.gov.et', 'civil', 'Civil Registration Staff', 'Civil Registration', 'ሲቪል ምዝገባ', 'civil_head', false),
-('labor@woreda9.gov.et', 'labor', 'Labor & Skills Staff', 'Labor & Skills', 'ስራና ክህሎት', 'labor_head', false),
-('ceo@woreda9.gov.et', 'ceo', 'CEO Office Staff', 'Chief Executive Office', 'ዋና ሥራ አስፈፃሚ ጽ/ቤት', 'ceo_office_head', false),
-('chief.executive@woreda9.gov.et', 'chief_executive', 'ጫልቱ አያና', 'Chief Executive', 'ዋና ሥራ አስፈፃሚ', 'ceo', false),
-('council.speaker@woreda9.gov.et', 'council_speaker', 'በየነች አንበሱ', 'Woreda Council', 'ወረዳ ምክር ቤት', 'council_speaker', false),
-('admin@woreda9.gov.et', 'admin', 'System Administrator', 'Admin', 'አስተዳደር', 'admin', true)
-ON CONFLICT (email) DO NOTHING;
+-- Portal users are created by admin via the Admin Portal (no seed data).
 
 -- ============================================================================
 -- Grant Permissions
 -- ============================================================================
 -- Ensure authenticated users can access portal_users for login
 GRANT SELECT ON portal_users TO anon, authenticated;
-GRANT SELECT, UPDATE ON portal_users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON portal_users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON officials TO authenticated;
 

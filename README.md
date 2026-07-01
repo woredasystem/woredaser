@@ -1,6 +1,6 @@
-# Woreda 9 Digital Service Portal
+# Woreda Digital Service Portal
 
-A modern, bilingual (Amharic/English) digital service portal for Akaki Kality Sub-City Woreda 9.
+A modern, bilingual (Amharic/English) digital service portal for woreda administration.
 
 ## Features
 
@@ -108,4 +108,8 @@ The built files will be in the `dist/` directory.
 
 ## License
 
-This project is developed for Woreda 9, Akaki Kality Sub-City.
+This project is developed for woreda administration (configurable via `src/config/site.js`).
+
+## Credentials
+
+Portal logins, Supabase keys, and sample codes: see **[CREDENTIALS.md](./CREDENTIALS.md)**.

@@ -1,4 +1,4 @@
-# Authentication Fixes Applied
+﻿# Authentication Fixes Applied
 
 ## Summary
 All critical authentication issues have been identified and fixed. The following files have been created/updated:
@@ -62,8 +62,8 @@ All critical authentication issues have been identified and fixed. The following
 3. Link users (if using Option B):
    ```sql
    UPDATE portal_users 
-   SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda9.gov.et')
-   WHERE email = 'trade@woreda9.gov.et';
+   SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda.gov.et')
+   WHERE email = 'trade@woreda.gov.et';
    -- Repeat for other users
    ```
 
@@ -123,13 +123,13 @@ After setup, users can login with:
 
 | Department (Amharic) | Email | Default Password |
 |---------------------|-------|------------------|
-| ንግድ ጽ/ቤት | trade@woreda9.gov.et | Trade2025! |
-| ሲቪል ምዝገባ | civil@woreda9.gov.et | Civil2025! |
-| ስራና ክህሎት | labor@woreda9.gov.et | Labor2025! |
-| ዋና ሥራ አስፈፃሚ ጽ/ቤት | ceo@woreda9.gov.et | CEO2025! |
-| ዋና ሥራ አስፈፃሚ | chief.executive@woreda9.gov.et | Chief2025! |
-| ወረዳ ምክር ቤት | council.speaker@woreda9.gov.et | Council2025! |
-| አስተዳደር | admin@woreda9.gov.et | Admin2025! |
+| ንግድ ጽ/ቤት | trade@woreda.gov.et | Trade2025! |
+| ሲቪል ምዝገባ | civil@woreda.gov.et | Civil2025! |
+| ስራና ክህሎት | labor@woreda.gov.et | Labor2025! |
+| ዋና ሥራ አስፈፃሚ ጽ/ቤት | ceo@woreda.gov.et | CEO2025! |
+| ዋና ሥራ አስፈፃሚ | chief.executive@woreda.gov.et | Chief2025! |
+| ወረዳ ምክር ቤት | council.speaker@woreda.gov.et | Council2025! |
+| አስተዳደር | admin@woreda.gov.et | Admin2025! |
 
 **⚠️ Security Note:** Change these passwords immediately in production!
 

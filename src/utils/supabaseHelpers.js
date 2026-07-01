@@ -64,7 +64,7 @@ export async function fetchAppointments(filters = {}) {
   if (filters.orderBy) {
     query = query.order(filters.orderBy, { ascending: filters.ascending !== false })
   } else {
-    query = query.order('appointment_date', { ascending: true })
+    query = query.order('created_at', { ascending: false })
   }
   
   const { data, error } = await query

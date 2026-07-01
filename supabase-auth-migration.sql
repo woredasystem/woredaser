@@ -152,21 +152,7 @@ CREATE POLICY "Portal users can update department appointments" ON appointments
     auth.uid() IS NOT NULL AND check_portal_user_access(assigned_department)
   );
 
--- ============================================================================
--- Insert Initial Portal Users (if they don't exist)
--- ============================================================================
--- Note: These users need to be created in Supabase Auth first
--- Then their user_id will be linked via the create-portal-users.js script
-
-INSERT INTO portal_users (email, username, full_name, department, department_am, role_key, is_admin) VALUES
-('trade@woreda9.gov.et', 'trade', 'Trade Office Staff', 'Trade Office', 'ንግድ ጽ/ቤት', 'trade_head', false),
-('civil@woreda9.gov.et', 'civil', 'Civil Registration Staff', 'Civil Registration', 'ሲቪል ምዝገባ', 'civil_head', false),
-('labor@woreda9.gov.et', 'labor', 'Labor & Skills Staff', 'Labor & Skills', 'ስራና ክህሎት', 'labor_head', false),
-('ceo@woreda9.gov.et', 'ceo', 'CEO Office Staff', 'Chief Executive Office', 'ዋና ሥራ አስፈፃሚ ጽ/ቤት', 'ceo_office_head', false),
-('chief.executive@woreda9.gov.et', 'chief_executive', 'ጫልቱ አያና', 'Chief Executive', 'ዋና ሥራ አስፈፃሚ', 'ceo', false),
-('council.speaker@woreda9.gov.et', 'council_speaker', 'በየነች አንበሱ', 'Woreda Council', 'ወረዳ ምክር ቤት', 'council_speaker', false),
-('admin@woreda9.gov.et', 'admin', 'System Administrator', 'Admin', 'አስተዳደር', 'admin', true)
-ON CONFLICT (email) DO NOTHING;
+-- Portal users are created by admin via the Admin Portal (no seed data).
 
 -- ============================================================================
 -- Grant Permissions

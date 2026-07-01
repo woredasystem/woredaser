@@ -1,101 +1,122 @@
-import { useLanguage } from '../hooks/useLanguage'
 import { useState, useEffect } from 'react'
 import { Users, Building2, Briefcase } from 'lucide-react'
-import { services } from '../data/services'
+import { useLanguage } from '../hooks/useLanguage'
+import { useSiteStats } from '../hooks/useSiteStats'
 
-export default function AnalyticsBar() {
-  const { t } = useLanguage()
-  const [counts, setCounts] = useState({
-    population: 0,
-    blocks: 0,
-    services: 0
-  })
-
-  // Calculate total services count from all sectors
-  const getTotalServicesCount = () => {
-    let total = 0
-    Object.values(services).forEach(sector => {
-      if (sector.items && Array.isArray(sector.items)) {
-        total += sector.items.length
-      }
-    })
-    return total
-  }
+function useCountUp(target, active, duration = 1600) {
+  const [value, setValue] = useState(0)
 
   useEffect(() => {
-    // Animate counters
-    const totalServices = getTotalServicesCount()
-    const targets = {
-      population: 57000,
-      blocks: 55,
-      services: totalServices
+    if (!active || target <= 0) {
+      setValue(target)
+      return
     }
 
-    const duration = 2000
-    const steps = 60
-    const stepDuration = duration / steps
+    let start = 0
+    const startTime = performance.now()
 
-    let currentStep = 0
-    const interval = setInterval(() => {
-      currentStep++
-      const progress = currentStep / steps
+    const tick = (now) => {
+      const progress = Math.min((now - startTime) / duration, 1)
+      const eased = 1 - (1 - progress) ** 3
+      setValue(Math.floor(start + (target - start) * eased))
+      if (progress < 1) requestAnimationFrame(tick)
+      else setValue(target)
+    }
 
-      setCounts({
-        population: Math.floor(targets.population * progress),
-        blocks: Math.floor(targets.blocks * progress),
-        services: Math.floor(targets.services * progress)
-      })
+    requestAnimationFrame(tick)
+  }, [target, active, duration])
 
-      if (currentStep >= steps) {
-        clearInterval(interval)
-        setCounts(targets)
-      }
-    }, stepDuration)
+  return value
+}
 
-    return () => clearInterval(interval)
-  }, [])
-
-  const stats = [
-    { label: t('population'), value: counts.population.toLocaleString(), suffix: '+', icon: Users },
-    { label: t('blocks'), value: counts.blocks, suffix: '', icon: Building2 },
-    { label: t('servicesCount'), value: counts.services, suffix: '+', icon: Briefcase }
-  ]
+function StatCell({ icon: Icon, label, value, suffix, accent }) {
+  const display = value.toLocaleString()
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 mb-16 relative z-20 -mt-10">
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 relative overflow-hidden">
-        {/* Decorative Background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-mayor-royal-blue/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-mayor-highlight-blue/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
-        {stats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <div key={index} className="relative group text-center md:text-left flex flex-col md:flex-row items-center md:items-start gap-6 p-4 rounded-2xl hover:bg-gray-50 transition-colors duration-300">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-mayor-royal-blue/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 text-mayor-royal-blue">
-                  <Icon className="w-8 h-8" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center text-green-500">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-4xl lg:text-5xl font-bold text-mayor-navy mb-1 tracking-tight">
-                  {stat.value}{stat.suffix}
-                </div>
-                <div className="text-gray-500 font-amharic font-medium text-lg uppercase tracking-wide">
-                  {stat.label}
-                </div>
-              </div>
-            </div>
-          )
-        })}
+    <div className="group relative flex flex-col items-center text-center px-6 py-8 sm:py-10 md:py-12">
+      <div
+        className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border-2 ${accent.border} ${accent.bg}`}
+      >
+        <Icon className={`h-7 w-7 ${accent.icon}`} strokeWidth={1.75} />
       </div>
+      <p className="text-4xl sm:text-5xl font-bold text-mayor-navy tabular-nums tracking-tight">
+        {display}
+        {suffix && <span className="text-2xl sm:text-3xl text-mayor-royal-blue ml-0.5">{suffix}</span>}
+      </p>
+      <p className="mt-3 text-base sm:text-lg font-semibold text-mayor-navy/70 font-amharic uppercase tracking-wide">
+        {label}
+      </p>
+      <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-1 w-12 ${accent.bar} rounded-full opacity-0 group-hover:opacity-100 transition-opacity`} />
     </div>
   )
 }
 
+export default function AnalyticsBar({ overlap = false }) {
+  const { t } = useLanguage()
+  const { stats, loading } = useSiteStats()
+
+  const pop = useCountUp(stats.population, !loading)
+  const blocks = useCountUp(stats.blocks, !loading)
+  const services = useCountUp(stats.services_count, !loading)
+
+  const items = [
+    {
+      icon: Users,
+      label: t('population'),
+      value: pop,
+      suffix: '+',
+      accent: {
+        border: 'border-mayor-royal-blue/30',
+        bg: 'bg-mayor-royal-blue/8',
+        icon: 'text-mayor-royal-blue',
+        bar: 'bg-mayor-royal-blue',
+      },
+    },
+    {
+      icon: Building2,
+      label: t('blocks'),
+      value: blocks,
+      suffix: '',
+      accent: {
+        border: 'border-mayor-deep-blue/30',
+        bg: 'bg-mayor-deep-blue/8',
+        icon: 'text-mayor-deep-blue',
+        bar: 'bg-mayor-deep-blue',
+      },
+    },
+    {
+      icon: Briefcase,
+      label: t('servicesCount'),
+      value: services,
+      suffix: '+',
+      accent: {
+        border: 'border-mayor-navy/25',
+        bg: 'bg-mayor-navy/5',
+        icon: 'text-mayor-navy',
+        bar: 'bg-mayor-navy',
+      },
+    },
+  ]
+
+  return (
+    <section
+      className={`relative z-20 px-4 sm:px-6 ${overlap ? '-mt-20 sm:-mt-24 mb-8' : 'py-8'}`}
+      aria-label="Woreda statistics"
+    >
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white border-2 border-mayor-gray-divider rounded-2xl shadow-[0_8px_30px_rgba(10,42,74,0.08)] overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-mayor-gray-divider">
+            {items.map((item) => (
+              <StatCell key={item.label} {...item} />
+            ))}
+          </div>
+        </div>
+        {loading && (
+          <p className="text-center text-xs text-mayor-navy/40 font-amharic mt-3 animate-pulse">
+            …
+          </p>
+        )}
+      </div>
+    </section>
+  )
+}

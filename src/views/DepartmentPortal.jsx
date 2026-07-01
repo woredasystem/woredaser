@@ -3,8 +3,9 @@ import { useLanguage } from '../hooks/useLanguage'
 import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
 import { logout } from '../utils/auth'
-import { ArrowLeft, Calendar, AlertCircle, CheckCircle, Clock, LogOut, Edit, Download } from 'lucide-react'
+import { Calendar, AlertCircle, CheckCircle, Clock, Edit, Download, LayoutDashboard } from 'lucide-react'
 import { showToast } from '../components/ToastContainer'
+import AdminLayout from '../components/layout/AdminLayout'
 import { gregorianToEthiopian, ethiopianMonths, ethiopianMonthsEn, formatEthiopianDate } from '../utils/ethiopianCalendar'
 import AppointmentReschedule from '../components/AppointmentReschedule'
 import ComplaintResponseForm from '../components/ComplaintResponseForm'
@@ -13,7 +14,7 @@ import { generateComplaintPDF } from '../utils/pdfGenerator'
 
 export default function DepartmentPortal({ department, roleKey, onBack }) {
   const { t, lang } = useLanguage()
-  const [activeTab, setActiveTab] = useState('complaints') // 'complaints' or 'appointments'
+  const [activeTab, setActiveTab] = useState('overview')
   const [complaintsSubTab, setComplaintsSubTab] = useState('pending') // 'pending' or 'responses'
   const [complaints, setComplaints] = useState([])
   const [appointments, setAppointments] = useState([])
@@ -54,7 +55,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
         .from('appointments')
         .select('*')
         .eq('assigned_department', department)
-        .order('appointment_date', { ascending: true })
+        .order('created_at', { ascending: false })
 
       if (appointmentsError) throw appointmentsError
 
@@ -78,7 +79,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
 
       const upcomingApps = appointmentsData?.filter(a => {
         const appDate = new Date(a.appointment_date)
-        return appDate >= tomorrow && a.status === 'Confirmed'
+        return appDate >= tomorrow && (a.status === 'Confirmed' || a.status === 'Rescheduled')
       }).length || 0
 
       setStats({
@@ -158,6 +159,8 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
       case 'In Progress':
       case 'Confirmed':
         return 'bg-mayor-royal-blue'
+      case 'Rescheduled':
+        return 'bg-amber-500'
       case 'Escalated':
         return 'bg-red-600'
       case 'Missed':
@@ -174,6 +177,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
       'Resolved': 'resolved',
       'Escalated': 'escalated',
       'Confirmed': 'confirmed',
+      'Rescheduled': 'rescheduled',
       'Completed': 'completed',
       'Missed': 'missed'
     }
@@ -189,6 +193,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
         'Resolved': 'Furmaata argateera',
         'Escalated': 'Gara olaanaatti ergameera',
         'Confirmed': 'Mirkaneeffameera',
+        'Rescheduled': 'Irra deebi\'ii qindeeffameera',
         'Completed': 'Xumurameera',
         'Missed': 'Darbameera'
       }
@@ -201,8 +206,9 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
         'In Progress': 'በሂደት ላይ',
         'Resolved': 'ተፈትቷል',
         'Escalated': 'ወደ ላይ ተላልፏል',
-        'Confirmed': 'የተረጋገጠ',
-        'Completed': 'ተጠናቋል',
+        'Confirmed': 'በሂደት ላይ',
+        'Rescheduled': 'ቀኑ ተቀይሯል',
+        'Completed': 'ተቀባይነት አግኝቷል',
         'Missed': 'ተቀርቷል'
       }
       return statusMap[status] || 'በመጠባበቅ ላይ'
@@ -332,40 +338,25 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
     )
   }
 
+  const navItems = [
+    { id: 'overview', label: lang === 'am' ? 'አጠቃላይ' : lang === 'om' ? 'Waliigala' : 'Overview', icon: LayoutDashboard },
+    { id: 'complaints', label: lang === 'am' ? 'ቅሬታዎች' : lang === 'om' ? 'Komiiwwan' : 'Complaints', icon: AlertCircle, badge: complaints.length },
+    { id: 'appointments', label: lang === 'am' ? 'ቀጠሮዎች' : lang === 'om' ? 'Beellamoota' : 'Appointments', icon: Calendar, badge: appointments.length },
+  ]
+
   return (
-    <div className="min-h-screen bg-white">
-      <div className="p-6 pt-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <button
-              onClick={onBack}
-              className="gov-button px-4 py-2 flex items-center gap-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>{t('back')}</span>
-            </button>
-            <button
-              onClick={() => {
-                logout()
-                onBack()
-              }}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-gov flex items-center gap-2 transition-colors font-amharic"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>{lang === 'am' ? 'ውጣ' : lang === 'om' ? 'Ba\'i' : 'Logout'}</span>
-            </button>
-          </div>
-
-          <div className="gov-header rounded-gov-lg p-6 mb-8">
-            <h1 className="text-4xl font-bold mb-2 font-amharic">
-              {getDepartmentDisplayName(department, lang)}
-            </h1>
-            <div className="w-24 h-1 bg-white/30 rounded-full"></div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+    <AdminLayout
+      title={getDepartmentDisplayName(department, lang)}
+      subtitle={lang === 'am' ? 'የስራ ክፍል ፓንል' : 'Department portal'}
+      navItems={navItems}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onBack={onBack}
+      onLogout={() => { logout(); onBack() }}
+    >
+          {/* Stats Cards - overview tab */}
+          {activeTab === 'overview' && (
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <div className="gov-card p-4">
               <div className="flex items-center gap-3">
                 <AlertCircle className="w-8 h-8 text-yellow-500" />
@@ -412,31 +403,11 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 border-b border-mayor-gray-divider">
-            <button
-              onClick={() => setActiveTab('complaints')}
-              className={`px-6 py-3 font-amharic font-semibold transition-colors ${activeTab === 'complaints'
-                ? 'text-mayor-royal-blue border-b-2 border-mayor-royal-blue'
-                : 'text-mayor-navy/60 hover:text-mayor-navy'
-                }`}
-            >
-              {lang === 'am' ? 'ቅሬታዎች' : lang === 'om' ? 'Komiiwwan' : 'Complaints'}
-            </button>
-            <button
-              onClick={() => setActiveTab('appointments')}
-              className={`px-6 py-3 font-amharic font-semibold transition-colors ${activeTab === 'appointments'
-                ? 'text-mayor-royal-blue border-b-2 border-mayor-royal-blue'
-                : 'text-mayor-navy/60 hover:text-mayor-navy'
-                }`}
-            >
-              {lang === 'am' ? 'ቀጠሮዎች' : lang === 'om' ? 'Beellamoota' : 'Appointments'}
-            </button>
-          </div>
-
-          {/* Complaints Sub-Tabs */}
           {activeTab === 'complaints' && (
+          <>
+          {/* Complaints Sub-Tabs */}
             <div className="flex gap-2 mb-6 border-b border-mayor-gray-divider">
               <button
                 onClick={() => setComplaintsSubTab('pending')}
@@ -457,10 +428,8 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                 {lang === 'am' ? 'መልሶች' : lang === 'om' ? 'Deebii' : 'Responses'}
               </button>
             </div>
-          )}
 
           {/* Complaints Tab */}
-          {activeTab === 'complaints' && (
             <div className="space-y-4">
               {(() => {
                 // Filter complaints based on sub-tab
@@ -633,6 +602,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                 })
               })()}
             </div>
+          </>
           )}
 
           {/* Appointments Tab */}
@@ -680,7 +650,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                               )}
                             </div>
                             <div className="flex items-center gap-2">
-                              {appointment.status === 'Confirmed' && (
+                              {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
                                 <button
                                   onClick={() => {
                                     setSelectedAppointment(appointment)
@@ -704,13 +674,13 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                             <span className="font-semibold text-mayor-royal-blue">{lang === 'am' ? 'የቀጠሮ ቀን:' : lang === 'om' ? 'Guyyaa Beellamaa:' : 'Appointment Date:'}</span> {formatAppointmentDate(appointment.appointment_date)}
                           </p>
                           {/* Action Buttons */}
-                          {appointment.status === 'Confirmed' && (
+                          {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
                             <div className="flex gap-2 mt-4 pt-4 border-t border-mayor-gray-divider">
                               <button
                                 onClick={() => updateAppointmentStatus(appointment.id, 'Completed')}
                                 className="px-4 py-2 bg-green-600 text-white rounded-gov hover:bg-green-700 transition-colors text-sm font-amharic"
                               >
-                                {lang === 'am' ? 'ተጠናቋል' : lang === 'om' ? 'Xumurameera' : 'Complete'}
+                                {lang === 'am' ? 'ተቀባይነት አግኝቷል' : lang === 'om' ? 'Xumurameera' : 'Complete'}
                               </button>
                               <button
                                 onClick={() => updateAppointmentStatus(appointment.id, 'Missed')}
@@ -753,7 +723,13 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                 setShowResponseForm(false)
                 setSelectedComplaint(null)
               }}
-              onSuccess={() => {
+              onSuccess={(updatedComplaint) => {
+                if (updatedComplaint) {
+                  setComplaints((prev) =>
+                    prev.map((c) => (c.id === updatedComplaint.id ? { ...c, ...updatedComplaint } : c))
+                  )
+                }
+                setComplaintsSubTab('responses')
                 fetchData()
                 setShowResponseForm(false)
                 setSelectedComplaint(null)
@@ -771,9 +747,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
               }}
             />
           )}
-        </div>
-      </div>
-    </div>
+    </AdminLayout>
   )
 }
 

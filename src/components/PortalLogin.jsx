@@ -1,57 +1,74 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../hooks/useLanguage'
+import { useOfficials } from '../hooks/useOfficials'
 import { login, getCurrentUser, logout } from '../utils/auth'
 import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
-import { Shield, Lock, Building2, Home } from 'lucide-react'
+import { getPortalEmailForRole } from '../config/site'
+import { Shield, Lock, Mail, ArrowLeft, Building2 } from 'lucide-react'
+import PasswordInput from './PasswordInput'
+import logo from '../assets/logo1.png'
+
+const ROLE_ACCENTS = {
+  trade_head: 'bg-mayor-royal-blue',
+  civil_head: 'bg-mayor-deep-blue',
+  labor_head: 'bg-mayor-navy',
+  ceo_office_head: 'bg-mayor-highlight-blue',
+  ceo: 'bg-mayor-deep-blue',
+  council_speaker: 'bg-mayor-royal-blue',
+  admin: 'bg-mayor-navy',
+}
 
 export default function PortalLogin({ department, roleKey, onSuccess, onBack }) {
   const { t, lang } = useLanguage()
   const navigate = useNavigate()
+  const { officials } = useOfficials()
 
-  // Get the Amharic department name for this portal (as default/suggestion)
-  const defaultDepartmentAm = getDepartmentDisplayName(department, 'am')
+  const departmentLabel = getDepartmentDisplayName(department, lang)
+  const defaultEmail = getPortalEmailForRole(roleKey)
+  const accentClass = ROLE_ACCENTS[roleKey] || 'bg-mayor-royal-blue'
+  const official = officials.find((o) => o.role_key === roleKey)
 
-  const [departmentName, setDepartmentName] = useState(defaultDepartmentAm || '')
+  const [email, setEmail] = useState(defaultEmail)
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [checkingAuth, setCheckingAuth] = useState(true) // Track if we're checking for existing auth
+  const [checkingAuth, setCheckingAuth] = useState(true)
 
-  // Check if user is already logged in on mount - redirect immediately if authenticated
+  useEffect(() => {
+    setEmail(defaultEmail)
+  }, [defaultEmail])
+
   useEffect(() => {
     const checkExistingAuth = async () => {
       setCheckingAuth(true)
       try {
-        // Wait a bit for Supabase to restore session from storage
-        await new Promise(resolve => setTimeout(resolve, 500))
-
-        // Use getCurrentUser which uses caching
+        await new Promise((resolve) => setTimeout(resolve, 500))
         const user = await getCurrentUser()
 
         if (user) {
-          console.log('PortalLogin: User already authenticated:', user.portalUser)
-
-          // User is already logged in, verify access and navigate immediately
-          const hasAccess = user.portalUser.department === department ||
+          const hasAccess =
+            user.portalUser.department === department ||
             (user.portalUser.isAdmin && department === 'Admin') ||
             user.portalUser.isAdmin
 
           if (hasAccess) {
-            console.log('Redirecting authenticated user to portal')
-            // Navigate directly to the portal page
             if (user.portalUser.isAdmin) {
               navigate('/portal/admin', { replace: true })
             } else {
-              navigate(`/portal/department/${encodeURIComponent(user.portalUser.department)}/${user.portalUser.roleKey}`, { replace: true })
+              navigate(
+                `/portal/department/${encodeURIComponent(user.portalUser.department)}/${user.portalUser.roleKey}`,
+                { replace: true }
+              )
             }
-            return // Exit early, don't show login form
-          } else {
-            // User is logged in but doesn't have access to this portal
-            console.log('User logged in but no access to this portal')
-            setError(lang === 'am' ? 'ይህንን ፓንል ለመዳረስ ፍቃድ የለዎትም' : 'You do not have access to this portal')
+            return
           }
+          setError(
+            lang === 'am'
+              ? 'ይህንን ፓንል ለመዳረስ ፍቃድ የለዎትም'
+              : 'You do not have access to this portal'
+          )
         }
       } catch (err) {
         console.error('Error checking existing auth:', err)
@@ -70,7 +87,6 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
     setLoading(true)
 
     try {
-      // Check if user is already logged in with a different account
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         const { data: existingPortalUser } = await supabase
@@ -79,52 +95,78 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
           .eq('user_id', session.user.id)
           .single()
 
-        if (existingPortalUser && existingPortalUser.department !== department && !existingPortalUser.is_admin) {
+        if (
+          existingPortalUser &&
+          existingPortalUser.department !== department &&
+          !existingPortalUser.is_admin
+        ) {
           await logout()
         }
       }
 
-      const result = await login(departmentName.trim(), password)
+      const result = await login(email.trim(), password)
 
       if (result.success) {
-        setLoading(false) // Stop loading immediately
+        setLoading(false)
 
-        // Verify user has access to this department
         if (result.authData.portalUser.department !== department && !result.authData.portalUser.isAdmin) {
-          setError(lang === 'am' ? 'ይህንን ፓንል ለመዳረስ ፍቃድ የለዎትም' : 'You do not have access to this portal')
+          setError(
+            lang === 'am'
+              ? 'ይህንን ፓንል ለመዳረስ ፍቃድ የለዎትም'
+              : 'You do not have access to this portal'
+          )
           return
         }
 
-        // Navigate directly instead of relying on onSuccess callback
-        // This ensures navigation happens even if auth state change handler fails
         if (result.authData.portalUser.isAdmin) {
           navigate('/portal/admin', { replace: true })
         } else {
-          navigate(`/portal/department/${encodeURIComponent(result.authData.portalUser.department)}/${result.authData.portalUser.roleKey}`, { replace: true })
+          navigate(
+            `/portal/department/${encodeURIComponent(result.authData.portalUser.department)}/${result.authData.portalUser.roleKey}`,
+            { replace: true }
+          )
         }
 
-        // Also call onSuccess for state management
         onSuccess(result.authData)
       } else {
-        setError(result.error || (lang === 'am' ? 'የተሳሳተ የመግቢያ መረጃ' : lang === 'om' ? 'Odeeffannoo seensaa dogoggoraa' : 'Invalid credentials'))
+        setError(
+          result.error ||
+            (lang === 'am'
+              ? 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል'
+              : lang === 'om'
+                ? 'Imeelii ykn jecha icciitii dogoggoraa'
+                : 'Invalid email or password')
+        )
         setLoading(false)
       }
-    } catch (error) {
-      console.error('Login error:', error)
-      setError(error.message || (lang === 'am' ? 'ስህተት ተፈጥሯል። እባክዎ እንደገና ይሞክሩ' : lang === 'om' ? 'Dogongora uumameera. Mee irra deebi\'ii yaali' : 'An error occurred. Please try again'))
+    } catch (err) {
+      console.error('Login error:', err)
+      setError(
+        err.message ||
+          (lang === 'am'
+            ? 'ስህተት ተፈጥሯል። እባክዎ እንደገና ይሞክሩ'
+            : lang === 'om'
+              ? "Dogongora uumameera. Mee irra deebi'ii yaali"
+              : 'An error occurred. Please try again')
+      )
       setLoading(false)
     }
   }
 
-  // Show loading screen while checking if user is already authenticated
+  const loginTitle =
+    lang === 'am' ? 'የመግቢያ ፓንል' : lang === 'om' ? 'Seensa Paanelii' : 'Portal Login'
+
+  const backLabel =
+    lang === 'am' ? 'ተመለስ' : lang === 'om' ? 'Deebi\'i' : t('back')
+
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-mayor-deep-blue via-mayor-royal-blue to-mayor-highlight-blue flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-4 animate-pulse">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-mayor-navy/5 border-2 border-mayor-navy/10 mb-4">
+            <div className="h-6 w-6 border-2 border-mayor-royal-blue/30 border-t-mayor-royal-blue rounded-full animate-spin" />
           </div>
-          <p className="text-white font-amharic text-lg">
+          <p className="text-mayor-navy/60 font-amharic text-sm">
             {lang === 'am' ? 'በመጫን ላይ...' : lang === 'om' ? 'Fe\'aa jira...' : 'Loading...'}
           </p>
         </div>
@@ -133,105 +175,140 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-mayor-deep-blue via-mayor-royal-blue to-mayor-highlight-blue flex items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        <div className="gov-card p-8">
-          <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="flex-1 w-full max-w-md mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
+        <header className="text-center mb-8">
+          {onBack && (
             <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 px-4 py-2 text-mayor-navy hover:text-mayor-royal-blue hover:bg-mayor-royal-blue/10 rounded-gov transition-colors font-amharic"
+              type="button"
+              onClick={onBack}
+              className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-mayor-navy/50 hover:text-mayor-royal-blue transition-colors font-amharic group"
             >
-              <Home className="w-5 h-5" />
-              <span>{lang === 'am' ? 'ወደ መነሻ ተመለስ' : lang === 'om' ? 'Gara Jalqabaatti Deebi\'i' : 'Back to Home'}</span>
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+              {backLabel}
             </button>
+          )}
+
+          <img src={logo} alt="" className="h-12 w-auto mx-auto mb-4 opacity-90" />
+
+          <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${accentClass} mb-4 shadow-sm`}>
+            {official?.image_url ? (
+              <img src={official.image_url} alt="" className="h-full w-full rounded-xl object-cover" />
+            ) : (
+              <Shield className="w-6 h-6 text-white" strokeWidth={1.75} />
+            )}
           </div>
 
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-mayor-royal-blue/10 rounded-full mb-4">
-              <Shield className="w-8 h-8 text-mayor-royal-blue" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-mayor-navy font-amharic leading-tight">
+            {loginTitle}
+          </h1>
+          <p className="mt-2 text-base text-mayor-navy/55 font-amharic">
+            {departmentLabel}
+          </p>
+
+          <div className="flex items-center justify-center gap-2 mt-4" aria-hidden="true">
+            <span className="w-2 h-2 rounded-full bg-mayor-royal-blue/25" />
+            <span className="w-10 h-0.5 rounded-full bg-mayor-royal-blue" />
+            <span className="w-2 h-2 rounded-full bg-mayor-royal-blue/25" />
+          </div>
+        </header>
+
+        <div className="bg-white border-2 border-mayor-gray-divider rounded-2xl overflow-hidden shadow-sm hover:shadow-[0_8px_24px_rgba(10,42,74,0.06)] transition-shadow duration-300">
+          <div className={`h-1 ${accentClass}`} />
+
+          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5">
+            <div className="flex items-center gap-3 rounded-xl border-2 border-mayor-gray-divider bg-slate-50/80 px-4 py-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-mayor-royal-blue/10">
+                <Building2 className="w-4 h-4 text-mayor-royal-blue" strokeWidth={1.75} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-mayor-navy/45 font-amharic">
+                  {lang === 'am' ? 'የስራ ክፍል' : lang === 'om' ? 'Kutaa Hojii' : 'Department'}
+                </p>
+                <p className="text-sm font-semibold text-mayor-navy font-amharic truncate">{departmentLabel}</p>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-mayor-navy mb-2 font-amharic">
-              {lang === 'am' ? 'የመግቢያ ፓንል' : 'Portal Login'}
-            </h1>
-            <p className="text-mayor-navy/70 font-amharic">
-              {getDepartmentDisplayName(department, lang)}
-            </p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-mayor-navy mb-2 font-amharic font-semibold">
-                {lang === 'am' ? 'የስራ ክፍል (አማርኛ)' : lang === 'om' ? 'Kutaa Hojii (Afaan Amaaraa)' : 'Department (Amharic)'}
+              <label className="block text-xs font-bold uppercase tracking-wider text-mayor-navy/45 font-amharic mb-2">
+                {lang === 'am' ? 'ኢሜይል' : lang === 'om' ? 'Imeelii' : 'Email'}
               </label>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mayor-navy/40" />
+              <div className="relative group">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-mayor-navy/30 group-focus-within:text-mayor-royal-blue transition-colors" />
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={departmentName}
-                  onChange={(e) => setDepartmentName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-gov bg-white border border-mayor-gray-divider text-mayor-navy focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue focus:border-mayor-royal-blue font-amharic"
-                  placeholder={lang === 'am' ? 'የስራ ክፍል በአማርኛ ያስገቡ (ምሳሌ: ንግድ ጽ/ቤት)' : lang === 'om' ? 'Kutaa hojii Afaan Amaaraan galchaa (fkn: ንግድ ጽ/ቤት)' : 'Enter department in Amharic (e.g., ንግድ ጽ/ቤት)'}
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border-2 border-mayor-gray-divider text-mayor-navy focus:outline-none focus:border-mayor-royal-blue focus:bg-white transition-colors"
+                  placeholder={
+                    lang === 'am'
+                      ? 'example@woreda.gov.et'
+                      : 'your.email@woreda.gov.et'
+                  }
                 />
               </div>
-              <p className="text-xs text-mayor-navy/60 mt-1 font-amharic">
-                {lang === 'am'
-                  ? `ምክር: ${defaultDepartmentAm}`
-                  : lang === 'om'
-                    ? `Yaada: ${defaultDepartmentAm}`
-                    : `Suggested: ${defaultDepartmentAm}`
-                }
-              </p>
+              {defaultEmail && (
+                <p className="text-xs text-mayor-navy/45 mt-2 font-amharic">
+                  {lang === 'am'
+                    ? `የዚህ ፓንል ኢሜይል፡ ${defaultEmail}`
+                    : `Portal email: ${defaultEmail}`}
+                </p>
+              )}
             </div>
 
             <div>
-              <label className="block text-mayor-navy mb-2 font-amharic font-semibold">
+              <label
+                htmlFor="portal-password"
+                className="block text-xs font-bold uppercase tracking-wider text-mayor-navy/45 font-amharic mb-2"
+              >
                 {lang === 'am' ? 'የይለፍ ቃል' : lang === 'om' ? 'Jecha Icciitii' : 'Password'}
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-mayor-navy/40" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-gov bg-white border border-mayor-gray-divider text-mayor-navy focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue focus:border-mayor-royal-blue"
-                  placeholder={lang === 'am' ? 'የይለፍ ቃል ያስገቡ' : lang === 'om' ? 'Jecha icciitii galchaa' : 'Enter password'}
-                />
-              </div>
+              <PasswordInput
+                id="portal-password"
+                lang={lang}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={
+                  lang === 'am'
+                    ? 'የይለፍ ቃል ያስገቡ'
+                    : lang === 'om'
+                      ? 'Jecha icciitii galchaa'
+                      : 'Enter password'
+                }
+              />
             </div>
 
             {error && (
-              <div className="p-3 bg-red-100 border border-red-300 text-red-700 rounded-gov text-sm font-amharic">
+              <div className="rounded-xl border-2 border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm font-amharic">
                 {error}
               </div>
             )}
 
-            <div className="flex gap-3">
-              {onBack && (
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="flex-1 px-4 py-2 bg-white border border-mayor-gray-divider text-mayor-navy rounded-gov hover:bg-mayor-gray-divider transition-colors font-amharic"
-                >
-                  {t('back')}
-                </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-mayor-navy hover:bg-mayor-deep-blue text-white rounded-xl font-semibold font-amharic transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {lang === 'am' ? 'በመግባት ላይ...' : 'Logging in...'}
+                </>
+              ) : (
+                lang === 'am' ? 'ግባ' : lang === 'om' ? 'Seeni' : 'Login'
               )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 gov-button py-2 disabled:opacity-50 font-amharic"
-              >
-                {loading
-                  ? (lang === 'am' ? 'በመግባት ላይ...' : lang === 'om' ? 'Seenaa jira...' : 'Logging in...')
-                  : (lang === 'am' ? 'ግባ' : lang === 'om' ? 'Seeni' : 'Login')
-                }
-              </button>
-            </div>
+            </button>
           </form>
         </div>
+
+        <p className="mt-8 flex items-center justify-center gap-2 text-xs text-mayor-navy/35 font-amharic">
+          <Lock className="w-3.5 h-3.5" />
+          {lang === 'am' ? 'ደህንነቱ የተጠበቀ መዳረሻ' : 'Secure staff access'}
+        </p>
       </div>
     </div>
   )
 }
-

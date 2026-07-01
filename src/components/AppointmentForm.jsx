@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../hooks/useLanguage'
+import { useServices } from '../hooks/useServices'
+import { useAppointmentSettings } from '../hooks/useAppointmentSettings'
 import { supabase } from '../lib/supabase'
-import { services } from '../data/services'
 import { X } from 'lucide-react'
 import { showToast } from './ToastContainer'
 import { 
@@ -11,10 +12,13 @@ import {
   ethiopianToGregorian,
   getDaysInEthiopianMonth 
 } from '../utils/ethiopianCalendar'
-import { getDepartmentFromService, getRoleKeyFromDepartment } from '../utils/routing'
+import { getDepartmentFromService, getRoleKeyFromDepartment, getBookableServices } from '../utils/routing'
+import { isValidEthiopianMobile, formatPhoneHint } from '../utils/phone'
 
-export default function AppointmentForm({ onClose, onSuccess }) {
+export default function AppointmentForm({ onClose, onSuccess, embedded = false }) {
   const { t, lang } = useLanguage()
+  const { services } = useServices()
+  const { settings } = useAppointmentSettings()
   const currentEthDate = getCurrentEthiopianDate()
   
   const [formData, setFormData] = useState({
@@ -34,24 +38,23 @@ export default function AppointmentForm({ onClose, onSuccess }) {
   })
   const [loading, setLoading] = useState(false)
 
-  // Flatten all services for dropdown
-  const allServices = [
-    ...services.civilRegistration.items,
-    ...services.tradeOffice.items,
-    ...services.laborSkills.items
-  ]
+  const allServices = getBookableServices(services, settings, lang)
 
-  // Get available days for selected month
   const maxDays = getDaysInEthiopianMonth(ethiopianDate.month, ethiopianDate.year)
   const daysArray = Array.from({ length: maxDays }, (_, i) => i + 1)
 
-  // Generate hours (3-11) - Ethiopian time format
-  // 3-7: ጠዋት (morning), 8-11: ከሰአት (afternoon/evening)
-  const hoursArray = Array.from({ length: 9 }, (_, i) => {
-    const hour = i + 3
+  const startHour = settings.startHour ?? 3
+  const endHour = settings.endHour ?? 11
+  const hoursArray = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+    const hour = i + startHour
     return hour.toString().padStart(2, '0')
   })
-  const minutesArray = ['00', '15', '30', '45']
+  const slotMinutes = settings.slotMinutes ?? 15
+  const minutesArray = slotMinutes === 15
+    ? ['00', '15', '30', '45']
+    : slotMinutes === 30
+      ? ['00', '30']
+      : ['00']
 
   // Convert Ethiopian date and time to Gregorian datetime for database
   const convertToGregorianDateTime = () => {
@@ -78,6 +81,20 @@ export default function AppointmentForm({ onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!isValidEthiopianMobile(formData.citizen_phone)) {
+      showToast(
+        lang === 'am'
+          ? `ትክክለኛ ስልክ ያስገቡ (${formatPhoneHint(lang)})`
+          : lang === 'om'
+            ? `Lakkoofsa bilbila sirrii galchaa (${formatPhoneHint(lang)})`
+            : `Enter a valid phone number (${formatPhoneHint(lang)})`,
+        'warning',
+        5000
+      )
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -85,7 +102,7 @@ export default function AppointmentForm({ onClose, onSuccess }) {
       const gregorianDateTime = convertToGregorianDateTime()
 
       // Determine department and role key from service type
-      const assignedDepartment = getDepartmentFromService(formData.service_type, lang)
+      const assignedDepartment = getDepartmentFromService(formData.service_type, lang, services)
       const assignedToRoleKey = getRoleKeyFromDepartment(assignedDepartment)
 
       // Generate unique code for follow-up (8 characters: 4 letters + 4 numbers)
@@ -104,13 +121,14 @@ export default function AppointmentForm({ onClose, onSuccess }) {
         .from('appointments')
         .insert([{
           citizen_name: formData.citizen_name,
-          citizen_phone: formData.citizen_phone,
+          citizen_phone: formData.citizen_phone.replace(/\s/g, ''),
           service_type: formData.service_type,
           appointment_date: gregorianDateTime,
           status: 'Confirmed',
           assigned_department: assignedDepartment,
           assigned_to_role_key: assignedToRoleKey,
-          unique_code: uniqueCode
+          unique_code: uniqueCode,
+          preferred_lang: lang === 'om' ? 'om' : lang === 'en' ? 'en' : 'am',
         }])
 
       if (insertError) throw insertError
@@ -177,19 +195,29 @@ export default function AppointmentForm({ onClose, onSuccess }) {
     }
   }, [ethiopianDate.month, ethiopianDate.year])
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="gov-card max-w-2xl w-full">
-        <div className="gov-header rounded-t-gov-xl p-6 flex justify-between items-center">
-          <h2 className="text-2xl font-bold font-amharic">
-            {t('bookAppointment')}
-          </h2>
-          <button onClick={onClose} className="text-white hover:text-white/70">
-            <X className="w-6 h-6" />
-          </button>
+  const formCard = (
+    <div className={`${embedded ? 'bg-white border-2 border-mayor-gray-divider rounded-2xl overflow-hidden' : 'gov-card max-w-2xl w-full'}`}>
+      <div className={`${embedded ? 'px-6 py-5 border-b border-mayor-navy/10 bg-slate-50/80' : 'gov-header rounded-t-gov-xl p-6 flex justify-between items-center'}`}>
+        <div className={embedded ? '' : 'flex justify-between items-center w-full'}>
+          <div>
+            <h2 className={`text-xl sm:text-2xl font-bold font-amharic ${embedded ? 'text-mayor-navy' : ''}`}>
+              {t('bookAppointment')}
+            </h2>
+            {embedded && (
+              <p className="mt-1 text-sm text-mayor-navy/50 font-amharic">
+                {lang === 'am' ? 'አገልግሎት እና ቀን ይምረጡ' : 'Select a service and preferred date'}
+              </p>
+            )}
+          </div>
+          {!embedded && (
+            <button onClick={onClose} className="text-white hover:text-white/70">
+              <X className="w-6 h-6" />
+            </button>
+          )}
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-white">
+      <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-5 bg-white">
           <div>
             <label className="block text-mayor-navy mb-2 font-amharic font-semibold">
               {t('citizenName')} *
@@ -210,6 +238,9 @@ export default function AppointmentForm({ onClose, onSuccess }) {
             <input
               type="tel"
               required
+              inputMode="numeric"
+              pattern="09[0-9]{8}"
+              placeholder={formatPhoneHint(lang)}
               value={formData.citizen_phone}
               onChange={(e) => setFormData({ ...formData, citizen_phone: e.target.value })}
               className="w-full px-4 py-2 rounded-gov bg-white border border-mayor-gray-divider text-mayor-navy placeholder-mayor-navy/40 focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue focus:border-mayor-royal-blue"
@@ -235,12 +266,11 @@ export default function AppointmentForm({ onClose, onSuccess }) {
             </select>
           </div>
 
-          <div>
+          <div className="rounded-xl border-2 border-mayor-gray-divider bg-slate-50/50 p-4 sm:p-5">
             <label className="block text-mayor-navy mb-3 font-amharic font-semibold">
               {t('appointmentDate')} * ({lang === 'am' ? 'የኢትዮጵያ ዘመን' : 'Ethiopian Calendar'})
             </label>
             
-            {/* Ethiopian Date Selection */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               {/* Day */}
               <div>
@@ -341,24 +371,35 @@ export default function AppointmentForm({ onClose, onSuccess }) {
             </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 gov-button py-3 disabled:opacity-50"
+              className="flex-1 bg-mayor-navy hover:bg-mayor-deep-blue text-white py-3 rounded-xl font-semibold font-amharic transition-colors disabled:opacity-50"
             >
               {loading ? (lang === 'am' ? 'በመላክ ላይ...' : 'Booking...') : t('submit')}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-white border border-mayor-gray-divider text-mayor-navy rounded-gov hover:bg-mayor-gray-divider transition-all"
-            >
-              {t('cancel')}
-            </button>
+            {!embedded && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 bg-white border-2 border-mayor-gray-divider text-mayor-navy rounded-xl hover:bg-slate-50 transition-all font-amharic"
+              >
+                {t('cancel')}
+              </button>
+            )}
           </div>
         </form>
       </div>
+  )
+
+  if (embedded) {
+    return formCard
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {formCard}
     </div>
   )
 }

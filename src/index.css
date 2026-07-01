@@ -33,6 +33,84 @@
   .gov-section {
     @apply bg-white border-t border-mayor-gray-divider;
   }
+
+  .page-card {
+    @apply bg-white border border-mayor-gray-divider rounded-2xl shadow-sm;
+  }
+
+  .page-card-interactive {
+    @apply page-card p-6 hover:shadow-md hover:border-mayor-royal-blue/25 transition-all duration-300;
+  }
+
+  /* Hero — static brand background */
+  .hero-brand-bg {
+    background-color: #0A2A4A;
+    background-image:
+      linear-gradient(160deg, #0A2A4A 0%, #0D47A1 38%, #1565C0 68%, #1E88E5 100%);
+  }
+
+  .hero-brand-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, black 20%, transparent 100%);
+  }
+
+  .hero-brand-glow-tr {
+    background: radial-gradient(circle at 100% 0%, rgba(30, 136, 229, 0.45) 0%, transparent 55%);
+  }
+
+  .hero-brand-glow-bl {
+    background: radial-gradient(circle at 0% 100%, rgba(13, 71, 161, 0.55) 0%, transparent 50%);
+  }
+
+  .hero-brand-diagonal {
+    background: linear-gradient(
+      125deg,
+      transparent 42%,
+      rgba(255, 255, 255, 0.06) 42%,
+      rgba(255, 255, 255, 0.06) 44%,
+      transparent 44%
+    );
+  }
+
+  .hero-brand-ring {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+  }
+
+  .hero-brand-dots {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 10%, transparent 100%);
+  }
+
+  .hero-brand-corner-tr {
+    background: linear-gradient(225deg, rgba(255, 255, 255, 0.08) 0%, transparent 55%);
+    clip-path: polygon(100% 0, 0 0, 100% 100%);
+  }
+
+  .hero-brand-corner-bl {
+    background: linear-gradient(45deg, rgba(10, 42, 74, 0.6) 0%, transparent 60%);
+    clip-path: polygon(0 100%, 0 0, 100% 100%);
+  }
+
+  .hero-brand-beam {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.07) 50%,
+      transparent 100%
+    );
+    transform: rotate(-12deg) scale(1.4);
+  }
+
+  .hero-glass-panel {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+  }
 }
 
 /* App-specific styles */

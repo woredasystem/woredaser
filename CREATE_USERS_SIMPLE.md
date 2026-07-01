@@ -1,4 +1,4 @@
-# Quick User Creation Guide
+﻿# Quick User Creation Guide
 
 ## Method 1: Supabase Dashboard (Easiest)
 
@@ -9,27 +9,27 @@
 ### Users to Create:
 
 1. **Trade Office**
-   - Email: `trade@woreda9.gov.et`
+   - Email: `trade@woreda.gov.et`
    - Password: `Trade2025!`
    - ✅ Check "Auto Confirm User"
 
 2. **Civil Registration**
-   - Email: `civil@woreda9.gov.et`
+   - Email: `civil@woreda.gov.et`
    - Password: `Civil2025!`
    - ✅ Check "Auto Confirm User"
 
 3. **Labor & Skills**
-   - Email: `labor@woreda9.gov.et`
+   - Email: `labor@woreda.gov.et`
    - Password: `Labor2025!`
    - ✅ Check "Auto Confirm User"
 
 4. **CEO Office**
-   - Email: `ceo@woreda9.gov.et`
+   - Email: `ceo@woreda.gov.et`
    - Password: `CEO2025!`
    - ✅ Check "Auto Confirm User"
 
 5. **Admin**
-   - Email: `admin@woreda9.gov.et`
+   - Email: `admin@woreda.gov.et`
    - Password: `Admin2025!`
    - ✅ Check "Auto Confirm User"
 
@@ -40,24 +40,24 @@ After creating the auth users, run this SQL in Supabase SQL Editor:
 ```sql
 -- Link all portal users with auth users
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda9.gov.et')
-WHERE email = 'trade@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda.gov.et')
+WHERE email = 'trade@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda9.gov.et')
-WHERE email = 'civil@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda.gov.et')
+WHERE email = 'civil@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda9.gov.et')
-WHERE email = 'labor@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda.gov.et')
+WHERE email = 'labor@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda9.gov.et')
-WHERE email = 'ceo@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda.gov.et')
+WHERE email = 'ceo@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda9.gov.et')
-WHERE email = 'admin@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda.gov.et')
+WHERE email = 'admin@woreda.gov.et';
 ```
 
 ## Verify Users Are Created

@@ -1,5 +1,8 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { translations } from '../lib/translations'
+import { siteConfig } from '../config/site'
+
+const LANG_STORAGE_KEY = `${siteConfig.storageKeyPrefix}_lang`
 
 // Create Language Context
 const LanguageContext = createContext()
@@ -8,11 +11,11 @@ const LanguageContext = createContext()
 export const LanguageProvider = ({ children }) => {
   const [lang, setLang] = useState(() => {
     // Default to Amharic, or get from localStorage
-    return localStorage.getItem('woreda9_lang') || 'am'
+    return localStorage.getItem(LANG_STORAGE_KEY) || 'am'
   })
 
   useEffect(() => {
-    localStorage.setItem('woreda9_lang', lang)
+    localStorage.setItem(LANG_STORAGE_KEY, lang)
   }, [lang])
 
   const t = (key) => {

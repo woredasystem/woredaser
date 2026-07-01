@@ -4,10 +4,19 @@ import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
 import { gregorianToEthiopian, ethiopianMonths, ethiopianMonthsEn } from '../utils/ethiopianCalendar'
 import { logout } from '../utils/auth'
-import { ArrowLeft, BarChart3, AlertTriangle, Users, Calendar, LogOut, Edit, Download, FileText, FileSpreadsheet, TrendingUp, Filter, Search, Trash2 } from 'lucide-react'
+import { BarChart3, AlertTriangle, Users, Calendar, Edit, Download, FileText, FileSpreadsheet, TrendingUp, Search, Trash2, Building2, Settings, FolderKanban, BookOpen, BarChart2 } from 'lucide-react'
 import AppointmentReschedule from '../components/AppointmentReschedule'
 import { generateComplaintPDF } from '../utils/pdfGenerator'
-import { exportComplaintsToCSV, exportAppointmentsToCSV, exportComplaintsToPDF, exportAppointmentsToPDF } from '../utils/exportUtils'
+import { exportComplaintsToPDF, exportComplaintsToCSV, exportAppointmentsToPDF, exportAppointmentsToCSV } from '../utils/exportUtils'
+import AdminOfficialsPanel from '../components/AdminOfficialsPanel'
+import AdminDepartmentsPanel from '../components/AdminDepartmentsPanel'
+import AdminServicesPanel from '../components/AdminServicesPanel'
+import AdminAppointmentSettingsPanel from '../components/AdminAppointmentSettingsPanel'
+import AdminContentPanel from '../components/AdminContentPanel'
+import AdminProjectsPanel from '../components/AdminProjectsPanel'
+import AdminSiteStatsPanel from '../components/AdminSiteStatsPanel'
+import AdminAnalyticsPanel from '../components/AdminAnalyticsPanel'
+import AdminLayout from '../components/layout/AdminLayout'
 
 export default function AdminPortal({ onBack }) {
   const { t, lang } = useLanguage()
@@ -16,7 +25,7 @@ export default function AdminPortal({ onBack }) {
   const [loading, setLoading] = useState(true)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [showRescheduleModal, setShowRescheduleModal] = useState(false)
-  const [activeTab, setActiveTab] = useState('analytics') // 'analytics', 'complaints', 'appointments'
+  const [activeTab, setActiveTab] = useState('analytics')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [departmentFilter, setDepartmentFilter] = useState('all')
@@ -55,7 +64,7 @@ export default function AdminPortal({ onBack }) {
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select('*')
-        .order('appointment_date', { ascending: true })
+        .order('created_at', { ascending: false })
 
       if (appointmentsError) throw appointmentsError
 
@@ -192,22 +201,12 @@ export default function AdminPortal({ onBack }) {
     ...appointments.map(a => a.assigned_department).filter(Boolean)
   ])]
 
-  // Group complaints by department for analytics
-  const complaintsByDepartment = complaints.reduce((acc, complaint) => {
-    const dept = complaint.assigned_department || complaint.department || 'Unknown'
-    if (!acc[dept]) acc[dept] = { total: 0, pending: 0, resolved: 0, escalated: 0 }
-    acc[dept].total++
-    if (complaint.status === 'Pending') acc[dept].pending++
-    if (complaint.status === 'Resolved') acc[dept].resolved++
-    if (complaint.status === 'Escalated') acc[dept].escalated++
-    return acc
-  }, {})
-
   // Get status color
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed': return 'bg-green-600'
       case 'Confirmed': return 'bg-mayor-royal-blue'
+      case 'Rescheduled': return 'bg-amber-500'
       case 'Missed': return 'bg-red-600'
       case 'Resolved': return 'bg-green-600'
       case 'Pending': return 'bg-yellow-500'
@@ -220,9 +219,10 @@ export default function AdminPortal({ onBack }) {
   // Get status text
   const getStatusText = (status) => {
     const statusMap = {
-      'Confirmed': lang === 'am' ? 'የተረጋገጠ' : 'Confirmed',
-      'Completed': lang === 'am' ? 'ተጠናቋል' : 'Completed',
-      'Missed': lang === 'am' ? 'ተቆርጧል' : 'Missed',
+      'Confirmed': lang === 'am' ? 'በሂደት ላይ' : 'Confirmed',
+      'Rescheduled': lang === 'am' ? 'ቀኑ ተቀይሯል' : 'Rescheduled',
+      'Completed': lang === 'am' ? 'ተቀባይነት አግኝቷል' : 'Completed',
+      'Missed': lang === 'am' ? 'ተቀባይነት አላገኘም' : 'Missed',
       'Pending': lang === 'am' ? 'በመጠባበቅ ላይ' : 'Pending',
       'Resolved': lang === 'am' ? 'ተፈትቷል' : 'Resolved',
       'Escalated': lang === 'am' ? 'ወደ ላይ ተላልፏል' : 'Escalated',
@@ -410,7 +410,7 @@ export default function AdminPortal({ onBack }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         <p className="text-mayor-navy font-amharic">
           {lang === 'am' ? 'በመጫን ላይ...' : 'Loading...'}
         </p>
@@ -418,205 +418,63 @@ export default function AdminPortal({ onBack }) {
     )
   }
 
+  const navItems = [
+    { id: 'analytics', label: lang === 'am' ? 'ትንተና' : 'Analytics', icon: TrendingUp },
+    { id: 'complaints', label: lang === 'am' ? 'ቅሬታዎች' : 'Complaints', icon: FileText, badge: complaints.length },
+    { id: 'appointments', label: lang === 'am' ? 'ቀጠሮዎች' : 'Appointments', icon: Calendar, badge: appointments.length },
+    { id: 'content', label: lang === 'am' ? 'ተልዕኮ/ራዕይ' : 'Mission & Vision', icon: BookOpen },
+    { id: 'siteStats', label: lang === 'am' ? 'ስታትስቲክስ' : 'Home Stats', icon: BarChart2 },
+    { id: 'projects', label: lang === 'am' ? 'ፕሮጀክቶች' : 'Projects', icon: FolderKanban },
+    { id: 'officials', label: lang === 'am' ? 'አመራሮች' : 'Officials', icon: Users },
+    { id: 'departments', label: lang === 'am' ? 'ክፍሎች' : 'Departments', icon: Building2 },
+    { id: 'services', label: lang === 'am' ? 'አገልግሎቶች' : 'Services', icon: BarChart3 },
+    { id: 'settings', label: lang === 'am' ? 'ቀጠሮ ቅንብር' : 'Booking', icon: Settings },
+  ]
+
+  const tabTitles = {
+    analytics: { title: lang === 'am' ? 'ትንተና' : 'Analytics', subtitle: lang === 'am' ? 'የስርዓቱ አጠቃላይ እይታ' : 'System overview' },
+    complaints: { title: lang === 'am' ? 'ቅሬታዎች' : 'Complaints', subtitle: lang === 'am' ? 'ሁሉንም ቅሬታዎች ያስተዳድሩ' : 'Manage all complaints' },
+    appointments: { title: lang === 'am' ? 'ቀጠሮዎች' : 'Appointments', subtitle: lang === 'am' ? 'ሁሉንም ቀጠሮዎች ያስተዳድሩ' : 'Manage all appointments' },
+    content: { title: lang === 'am' ? 'ይዘት' : 'Site Content', subtitle: lang === 'am' ? 'ተልዕኮ፣ ራዕይ እና እሴቶች' : 'Mission, vision & values' },
+    siteStats: { title: lang === 'am' ? 'ስታትስቲክስ' : 'Homepage Stats', subtitle: lang === 'am' ? 'ህዝብ፣ ብሎኮች፣ አገልግሎቶች' : 'Population, blocks, services' },
+    projects: { title: lang === 'am' ? 'ፕሮጀክቶች' : 'Projects', subtitle: lang === 'am' ? 'የመነሻ ገጽ ፕሮጀክቶች' : 'Homepage projects' },
+    officials: { title: lang === 'am' ? 'አመራሮች' : 'Officials', subtitle: lang === 'am' ? 'አመራሮች እና ፓንል ተጠቃሚዎች' : 'Leaders & portal users' },
+    departments: { title: lang === 'am' ? 'ክፍሎች' : 'Departments', subtitle: lang === 'am' ? 'የስራ ክፍሎች' : 'Department catalog' },
+    services: { title: lang === 'am' ? 'አገልግሎቶች' : 'Services', subtitle: lang === 'am' ? 'የአገልግሎት ካታሎግ' : 'Service catalog' },
+    settings: { title: lang === 'am' ? 'ቀጠሮ ቅንብር' : 'Booking Settings', subtitle: lang === 'am' ? 'የቀጠሮ ሰዓት እና ቀን' : 'Appointment rules' },
+  }
+
+  const { title: pageTitle, subtitle: pageSubtitle } = tabTitles[activeTab] || tabTitles.analytics
+
   return (
-    <div className="min-h-screen bg-white">
-      <div className="p-6 pt-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <button
-              onClick={onBack}
-              className="gov-button px-4 py-2 flex items-center gap-2"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>{t('back')}</span>
-            </button>
-            <button
-              onClick={() => {
-                logout()
-                onBack()
-              }}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-gov flex items-center gap-2 transition-colors font-amharic"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>{lang === 'am' ? 'ውጣ' : 'Logout'}</span>
-            </button>
-          </div>
+    <AdminLayout
+      title={pageTitle}
+      subtitle={pageSubtitle}
+      navItems={navItems}
+      activeTab={activeTab}
+      onTabChange={(tab) => {
+        setActiveTab(tab)
+        if (tab === 'complaints') setSelectedComplaints(new Set())
+        if (tab === 'appointments') setSelectedAppointments(new Set())
+      }}
+      onBack={onBack}
+      onLogout={() => { logout(); onBack() }}
+    >
+          {activeTab === 'officials' && <AdminOfficialsPanel />}
+          {activeTab === 'departments' && <AdminDepartmentsPanel />}
+          {activeTab === 'services' && <AdminServicesPanel />}
+          {activeTab === 'settings' && <AdminAppointmentSettingsPanel />}
+          {activeTab === 'content' && <AdminContentPanel />}
+          {activeTab === 'siteStats' && <AdminSiteStatsPanel />}
+          {activeTab === 'projects' && <AdminProjectsPanel />}
 
-          <div className="gov-header rounded-gov-lg p-6 mb-8">
-            <h1 className="text-4xl font-bold mb-2 font-amharic">
-              {lang === 'am' ? 'የአስተዳደር ፓንል' : 'Admin Portal'}
-            </h1>
-            <p className="text-white/90 font-amharic">
-              {lang === 'am' ? 'የስርዓቱ አጠቃላይ እይታ' : 'System Overview'}
-            </p>
-            <div className="w-24 h-1 bg-white/30 rounded-full mt-2"></div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 border-b border-mayor-gray-divider">
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-6 py-3 font-semibold font-amharic transition-colors border-b-2 ${
-                activeTab === 'analytics'
-                  ? 'border-mayor-royal-blue text-mayor-royal-blue'
-                  : 'border-transparent text-mayor-navy/70 hover:text-mayor-navy'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4 inline mr-2" />
-              {lang === 'am' ? 'ትንተና' : 'Analytics'}
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('complaints')
-                setSelectedComplaints(new Set())
-              }}
-              className={`px-6 py-3 font-semibold font-amharic transition-colors border-b-2 ${
-                activeTab === 'complaints'
-                  ? 'border-mayor-royal-blue text-mayor-royal-blue'
-                  : 'border-transparent text-mayor-navy/70 hover:text-mayor-navy'
-              }`}
-            >
-              <FileText className="w-4 h-4 inline mr-2" />
-              {lang === 'am' ? 'ቅሬታዎች' : 'Complaints'} ({complaints.length})
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('appointments')
-                setSelectedAppointments(new Set())
-              }}
-              className={`px-6 py-3 font-semibold font-amharic transition-colors border-b-2 ${
-                activeTab === 'appointments'
-                  ? 'border-mayor-royal-blue text-mayor-royal-blue'
-                  : 'border-transparent text-mayor-navy/70 hover:text-mayor-navy'
-              }`}
-            >
-              <Calendar className="w-4 h-4 inline mr-2" />
-              {lang === 'am' ? 'ቀጠሮዎች' : 'Appointments'} ({appointments.length})
-            </button>
-          </div>
-
-          {/* Analytics Tab */}
           {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="gov-card p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-mayor-royal-blue/10 rounded-gov-lg">
-                      <BarChart3 className="w-8 h-8 text-mayor-royal-blue" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'ጠቅላላ ቅሬታዎች' : 'Total Complaints'}</p>
-                      <p className="text-3xl font-bold text-mayor-navy">{stats.totalComplaints}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="gov-card p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-yellow-100 rounded-gov-lg">
-                      <AlertTriangle className="w-8 h-8 text-yellow-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'በመጠባበቅ ላይ' : 'Pending'}</p>
-                      <p className="text-3xl font-bold text-mayor-navy">{stats.pendingComplaints}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="gov-card p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-green-100 rounded-gov-lg">
-                      <Users className="w-8 h-8 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'ተፈትቷል' : 'Resolved'}</p>
-                      <p className="text-3xl font-bold text-mayor-navy">{stats.resolvedComplaints}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="gov-card p-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-mayor-highlight-blue/10 rounded-gov-lg">
-                      <Calendar className="w-8 h-8 text-mayor-highlight-blue" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'ጠቅላላ ቀጠሮዎች' : 'Total Appointments'}</p>
-                      <p className="text-3xl font-bold text-mayor-navy">{stats.totalAppointments}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Complaints by Department */}
-                <div className="gov-card p-6">
-                  <h3 className="text-xl font-bold text-mayor-navy mb-4 font-amharic">
-                    {lang === 'am' ? 'ቅሬታዎች በየስራ ክፍሉ' : 'Complaints by Department'}
-                  </h3>
-                  <div className="space-y-4">
-                    {Object.entries(complaintsByDepartment).map(([dept, data]) => {
-                      const percentage = stats.totalComplaints > 0 
-                        ? (data.total / stats.totalComplaints) * 100 
-                        : 0
-                      return (
-                        <div key={dept}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold text-mayor-navy font-amharic text-sm">
-                              {getDepartmentDisplayName(dept, lang)}
-                            </span>
-                            <span className="text-mayor-navy/70 text-sm">{data.total} ({percentage.toFixed(1)}%)</span>
-                          </div>
-                          <div className="w-full bg-mayor-gray-divider rounded-full h-3">
-                            <div
-                              className="bg-mayor-royal-blue h-3 rounded-full transition-all"
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <div className="flex gap-4 mt-1 text-xs text-mayor-navy/60 font-amharic">
-                            <span>{lang === 'am' ? 'በመጠባበቅ' : 'Pending'}: {data.pending}</span>
-                            <span>{lang === 'am' ? 'ተፈትቷል' : 'Resolved'}: {data.resolved}</span>
-                            <span>{lang === 'am' ? 'ወደ ላይ' : 'Escalated'}: {data.escalated}</span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Appointments Status */}
-                <div className="gov-card p-6">
-                  <h3 className="text-xl font-bold text-mayor-navy mb-4 font-amharic">
-                    {lang === 'am' ? 'የቀጠሮዎች ሁኔታ' : 'Appointments Status'}
-                  </h3>
-                  <div className="space-y-4">
-                    {[
-                      { label: lang === 'am' ? 'የተረጋገጠ' : 'Confirmed', value: stats.confirmedAppointments, color: 'bg-mayor-royal-blue' },
-                      { label: lang === 'am' ? 'ተጠናቋል' : 'Completed', value: stats.completedAppointments, color: 'bg-green-600' },
-                      { label: lang === 'am' ? 'ተቆርጧል' : 'Missed', value: stats.missedAppointments, color: 'bg-red-600' }
-                    ].map((item) => {
-                      const percentage = stats.totalAppointments > 0 
-                        ? (item.value / stats.totalAppointments) * 100 
-                        : 0
-                      return (
-                        <div key={item.label}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-semibold text-mayor-navy font-amharic text-sm">{item.label}</span>
-                            <span className="text-mayor-navy/70 text-sm">{item.value} ({percentage.toFixed(1)}%)</span>
-                          </div>
-                          <div className="w-full bg-mayor-gray-divider rounded-full h-3">
-                            <div
-                              className={`${item.color} h-3 rounded-full transition-all`}
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AdminAnalyticsPanel
+              complaints={complaints}
+              appointments={appointments}
+              loading={loading}
+              lang={lang}
+            />
           )}
 
           {/* Complaints Tab */}
@@ -784,9 +642,10 @@ export default function AdminPortal({ onBack }) {
                     className="px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                   >
                     <option value="all">{lang === 'am' ? 'ሁሉም ሁኔታዎች' : 'All Statuses'}</option>
-                    <option value="Confirmed">{lang === 'am' ? 'የተረጋገጠ' : 'Confirmed'}</option>
-                    <option value="Completed">{lang === 'am' ? 'ተጠናቋል' : 'Completed'}</option>
-                    <option value="Missed">{lang === 'am' ? 'ተቆርጧል' : 'Missed'}</option>
+                    <option value="Confirmed">{lang === 'am' ? 'በሂደት ላይ' : 'Confirmed'}</option>
+                    <option value="Rescheduled">{lang === 'am' ? 'ቀኑ ተቀይሯል' : 'Rescheduled'}</option>
+                    <option value="Completed">{lang === 'am' ? 'ተቀባይነት አግኝቷል' : 'Completed'}</option>
+                    <option value="Missed">{lang === 'am' ? 'ተቀባይነት አላገኘም' : 'Missed'}</option>
                   </select>
                   <select
                     value={departmentFilter}
@@ -882,7 +741,7 @@ export default function AdminPortal({ onBack }) {
                             </span>
                           </td>
                           <td className="px-4 py-3">
-                            {appointment.status === 'Confirmed' && (
+                            {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
                               <button
                                 onClick={() => {
                                   setSelectedAppointment(appointment)
@@ -958,8 +817,6 @@ export default function AdminPortal({ onBack }) {
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+    </AdminLayout>
   )
 }

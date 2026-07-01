@@ -1,12 +1,12 @@
 export const translations = {
   am: {
     // Header
-    woreda9: 'ወረዳ 9',
+    woreda: 'ወረዳ',
     language: 'ቋንቋ',
     
     // Hero Section
     welcome: 'እንኳን ደህና መጡ',
-    welcomeSubtitle: 'አቃቂ ቃሊቲ ክፍለ ከተማ ወረዳ 9 አስተዳደር',
+    welcomeSubtitle: 'ክፍለ ከተማ ወረዳ አስተዳደር',
     
     // Big 4 Grid
     services: 'አገልግሎቶች',
@@ -22,7 +22,7 @@ export const translations = {
     
     // Chief Executive
     chiefExecutive: 'ዋና ሥራ አስፈፃሚ',
-    missionStatement: 'የወረዳ 9 የዲጂታል ሽግግር ራይ',
+    missionStatement: 'የወረዳ የዲጂታል ሽግግር ራይ',
     
     // Services
     civilRegistration: 'ሲቪል ምዝገባ',
@@ -156,8 +156,9 @@ export const translations = {
     bookedDate: 'የተዘጋጀበት ቀን',
     enterUniqueCodePromptAppointment: 'ቀጠሮዎን ሲዘጉ የተሰጥዎትን ልዩ ኮድ ያስገቡ',
     appointmentNotFound: 'ቀጠሮ አልተገኘም። የገቡትን ኮድ ያረጋግጡ',
-    confirmed: 'የተረጋገጠ',
-    completed: 'ተጠናቋል',
+    confirmed: 'በሂደት ላይ',
+    rescheduled: 'ቀኑ ተቀይሯል',
+    completed: 'ተቀባይነት አግኝቷል',
     missed: 'ተቀርቷል',
     
     // Leaders
@@ -165,12 +166,12 @@ export const translations = {
   },
   en: {
     // Header
-    woreda9: 'Woreda 9',
+    woreda: 'Woreda',
     language: 'Language',
     
     // Hero Section
     welcome: 'Welcome',
-    welcomeSubtitle: 'Akaki Kality Sub-City Woreda 9 Digital Service Portal',
+    welcomeSubtitle: 'Sub-City Woreda Digital Service Portal',
     
     // Big 4 Grid
     services: 'Services',
@@ -186,7 +187,7 @@ export const translations = {
     
     // Chief Executive
     chiefExecutive: 'Chief Executive',
-    missionStatement: 'Woreda 9 Digital Transformation Vision',
+    missionStatement: 'Woreda Digital Transformation Vision',
     
     // Services
     civilRegistration: 'Civil Registration',
@@ -321,6 +322,7 @@ export const translations = {
     enterUniqueCodePromptAppointment: 'Enter the unique code you received when booking your appointment',
     appointmentNotFound: 'Appointment not found. Please verify the code you entered',
     confirmed: 'Confirmed',
+    rescheduled: 'Rescheduled',
     completed: 'Completed',
     missed: 'Missed',
     
@@ -329,12 +331,12 @@ export const translations = {
   },
   om: {
     // Header
-    woreda9: 'Aanaa 9',
+    woreda: 'Aanaa',
     language: 'Afaan',
     
     // Hero Section
     welcome: 'Baga Nagaan Dhuftan',
-    welcomeSubtitle: 'Aanaa 9 Magaalaa Xiqqoo Akaki Qaaliitii Tajaajila Dijitaalaa',
+    welcomeSubtitle: 'Aanaa Magaalaa Xiqqoo Tajaajila Dijitaalaa',
     
     // Big 4 Grid
     services: 'Tajaajiloota',
@@ -350,7 +352,7 @@ export const translations = {
     
     // Chief Executive
     chiefExecutive: 'Hogganaa Ol\'aanaa',
-    missionStatement: 'Mul\'ata Jijjiirama Dijitaalaa Aanaa 9',
+    missionStatement: 'Mul\'ata Jijjiirama Dijitaalaa Aanaa',
     
     // Services
     civilRegistration: 'Galmee Sivilii',
@@ -485,6 +487,7 @@ export const translations = {
     enterUniqueCodePromptAppointment: 'Koodii addaan baasaa yeroo beellama qabattan argattan galchaa',
     appointmentNotFound: 'Beellaman hin argamne. Koodii galchitan mirkaneessaa',
     confirmed: 'Mirkanaa\'eera',
+    rescheduled: 'Irra deebi\'ii qindeeffameera',
     completed: 'Xumurameera',
     missed: 'Darbameera',
     

@@ -211,14 +211,17 @@ export default function ComplaintResponseForm({ complaint, onClose, onSuccess })
         final_decision_date: formData.final_decision_date
           ? parseEthiopianDate(formData.final_decision_date)
           : null,
-        status: formData.summary_response === 'correct' ? 'In Progress' : 'Resolved',
+        // Form 02 submission closes the case — both valid and invalid outcomes are resolved
+        status: 'Resolved',
         resolution_note: formData.investigation_findings || formData.action_to_be_taken || null,
       }
 
-      const { error } = await supabase
+      const { data: updatedComplaint, error } = await supabase
         .from('complaints')
         .update(updateData)
         .eq('id', complaint.id)
+        .select()
+        .single()
 
       if (error) {
         console.error('Supabase error details:', error)
@@ -232,7 +235,7 @@ export default function ComplaintResponseForm({ complaint, onClose, onSuccess })
         5000
       )
 
-      onSuccess?.()
+      onSuccess?.(updatedComplaint)
       onClose()
     } catch (error) {
       console.error('Error submitting response:', error)

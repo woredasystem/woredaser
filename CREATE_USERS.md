@@ -1,4 +1,4 @@
-# Create Portal Users - Quick Guide
+﻿# Create Portal Users - Quick Guide
 
 ## Option 1: Using the Script (Recommended)
 
@@ -36,27 +36,27 @@ The script will:
 3. Create each user:
 
 **Trade Office:**
-- Email: `trade@woreda9.gov.et`
+- Email: `trade@woreda.gov.et`
 - Password: `Trade2025!` (or your secure password)
 - Auto Confirm: ✅
 
 **Civil Registration:**
-- Email: `civil@woreda9.gov.et`
+- Email: `civil@woreda.gov.et`
 - Password: `Civil2025!`
 - Auto Confirm: ✅
 
 **Labor & Skills:**
-- Email: `labor@woreda9.gov.et`
+- Email: `labor@woreda.gov.et`
 - Password: `Labor2025!`
 - Auto Confirm: ✅
 
 **CEO Office:**
-- Email: `ceo@woreda9.gov.et`
+- Email: `ceo@woreda.gov.et`
 - Password: `CEO2025!`
 - Auto Confirm: ✅
 
 **Admin:**
-- Email: `admin@woreda9.gov.et`
+- Email: `admin@woreda.gov.et`
 - Password: `Admin2025!`
 - Auto Confirm: ✅
 
@@ -67,24 +67,24 @@ After creating auth users, run this SQL to link them:
 ```sql
 -- Link all users
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda9.gov.et')
-WHERE email = 'trade@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'trade@woreda.gov.et')
+WHERE email = 'trade@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda9.gov.et')
-WHERE email = 'civil@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'civil@woreda.gov.et')
+WHERE email = 'civil@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda9.gov.et')
-WHERE email = 'labor@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'labor@woreda.gov.et')
+WHERE email = 'labor@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda9.gov.et')
-WHERE email = 'ceo@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'ceo@woreda.gov.et')
+WHERE email = 'ceo@woreda.gov.et';
 
 UPDATE portal_users 
-SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda9.gov.et')
-WHERE email = 'admin@woreda9.gov.et';
+SET user_id = (SELECT id FROM auth.users WHERE email = 'admin@woreda.gov.et')
+WHERE email = 'admin@woreda.gov.et';
 ```
 
 ### Step 3: Verify

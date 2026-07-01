@@ -3,6 +3,7 @@
 import html2pdf from 'html2pdf.js'
 import { gregorianToEthiopian, ethiopianMonths, ethiopianMonthsEn } from './ethiopianCalendar'
 import { getDepartmentDisplayName } from './routing'
+import { getWoredaAdministration } from '../config/site'
 
 // Format date for display
 function formatDate(dateString, lang = 'am') {
@@ -118,9 +119,10 @@ export function exportAppointmentsToCSV(appointments, lang = 'am') {
     appointment.service_type || '',
     formatDateTime(appointment.appointment_date, lang),
     lang === 'am'
-      ? (appointment.status === 'Confirmed' ? 'የተረጋገጠ' :
-         appointment.status === 'Completed' ? 'ተጠናቋል' :
-         appointment.status === 'Missed' ? 'ተቆርጧል' : appointment.status)
+      ? (appointment.status === 'Confirmed' ? 'በሂደት ላይ' :
+         appointment.status === 'Rescheduled' ? 'ቀኑ ተቀይሯል' :
+         appointment.status === 'Completed' ? 'ተቀባይነት አግኝቷል' :
+         appointment.status === 'Missed' ? 'ተቀባይነት አላገኘም' : appointment.status)
       : appointment.status,
     getDepartmentDisplayName(appointment.assigned_department, lang),
     formatDate(appointment.created_at, lang)
@@ -203,7 +205,7 @@ export function exportComplaintsToPDF(complaints, lang = 'am') {
     <body>
       <div class="header">
         <h1>${lang === 'am' ? 'የቅሬታዎች ሪፖርት' : 'Complaints Report'}</h1>
-        <p>${lang === 'am' ? 'ወረዳ 9 አስተዳደር' : 'Woreda 9 Administration'}</p>
+        <p>${getWoredaAdministration(lang)}</p>
         <p>${formatDate(new Date().toISOString(), lang)}</p>
       </div>
       <table>
@@ -316,7 +318,7 @@ export function exportAppointmentsToPDF(appointments, lang = 'am') {
     <body>
       <div class="header">
         <h1>${lang === 'am' ? 'የቀጠሮዎች ሪፖርት' : 'Appointments Report'}</h1>
-        <p>${lang === 'am' ? 'ወረዳ 9 አስተዳደር' : 'Woreda 9 Administration'}</p>
+        <p>${getWoredaAdministration(lang)}</p>
         <p>${formatDate(new Date().toISOString(), lang)}</p>
       </div>
       <table>
@@ -340,9 +342,10 @@ export function exportAppointmentsToPDF(appointments, lang = 'am') {
               <td>${appointment.service_type || ''}</td>
               <td>${formatDateTime(appointment.appointment_date, lang)}</td>
               <td>${lang === 'am'
-                ? (appointment.status === 'Confirmed' ? 'የተረጋገጠ' :
-                   appointment.status === 'Completed' ? 'ተጠናቋል' :
-                   appointment.status === 'Missed' ? 'ተቆርጧል' : appointment.status)
+                ? (appointment.status === 'Confirmed' ? 'በሂደት ላይ' :
+                   appointment.status === 'Rescheduled' ? 'ቀኑ ተቀይሯል' :
+                   appointment.status === 'Completed' ? 'ተቀባይነት አግኝቷል' :
+                   appointment.status === 'Missed' ? 'ተቀባይነት አላገኘም' : appointment.status)
                 : appointment.status}</td>
               <td>${getDepartmentDisplayName(appointment.assigned_department, lang)}</td>
             </tr>

@@ -11,6 +11,7 @@ ADD COLUMN IF NOT EXISTS complainant_age INTEGER,
 ADD COLUMN IF NOT EXISTS complainant_gender TEXT,
 ADD COLUMN IF NOT EXISTS submission_type TEXT CHECK (submission_type IN ('individual', 'group')),
 ADD COLUMN IF NOT EXISTS group_member_count INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS group_members_info TEXT,
 ADD COLUMN IF NOT EXISTS complainant_subcity TEXT,
 ADD COLUMN IF NOT EXISTS complainant_woreda TEXT,
 ADD COLUMN IF NOT EXISTS complainant_house_number TEXT,
@@ -19,7 +20,8 @@ ADD COLUMN IF NOT EXISTS submission_institution TEXT,
 ADD COLUMN IF NOT EXISTS previous_written_response TEXT,
 ADD COLUMN IF NOT EXISTS complaint_main_content TEXT,
 ADD COLUMN IF NOT EXISTS requested_solution TEXT,
-ADD COLUMN IF NOT EXISTS complainant_signature TEXT;
+ADD COLUMN IF NOT EXISTS complainant_signature TEXT,
+ADD COLUMN IF NOT EXISTS assigned_to_role_key TEXT;
 
 -- Office acknowledgment section (Form 01)
 ALTER TABLE complaints

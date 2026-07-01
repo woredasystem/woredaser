@@ -3,8 +3,9 @@
 // Usage: node scripts/create-portal-users.js <SERVICE_ROLE_KEY>
 
 import { createClient } from '@supabase/supabase-js'
+import { getPortalEmail } from '../src/config/site.js'
 
-const supabaseUrl = 'https://dfdgyzdyfqyivanfobap.supabase.co'
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://rbbyniuqdukfehbacgyo.supabase.co'
 const serviceRoleKey = process.argv[2] || process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!serviceRoleKey) {
@@ -30,7 +31,7 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 
 const portalUsers = [
   {
-    email: 'trade@woreda9.gov.et',
+    email: getPortalEmail('trade'),
     password: 'Trade2025!',
     username: 'trade',
     fullName: 'Trade Office Staff',
@@ -40,7 +41,7 @@ const portalUsers = [
     isAdmin: false
   },
   {
-    email: 'civil@woreda9.gov.et',
+    email: getPortalEmail('civil'),
     password: 'Civil2025!',
     username: 'civil',
     fullName: 'Civil Registration Staff',
@@ -50,7 +51,7 @@ const portalUsers = [
     isAdmin: false
   },
   {
-    email: 'labor@woreda9.gov.et',
+    email: getPortalEmail('labor'),
     password: 'Labor2025!',
     username: 'labor',
     fullName: 'Labor & Skills Staff',
@@ -60,7 +61,7 @@ const portalUsers = [
     isAdmin: false
   },
   {
-    email: 'ceo@woreda9.gov.et',
+    email: getPortalEmail('ceo'),
     password: 'CEO2025!',
     username: 'ceo',
     fullName: 'CEO Office Staff',
@@ -70,27 +71,27 @@ const portalUsers = [
     isAdmin: false
   },
   {
-    email: 'chief.executive@woreda9.gov.et',
+    email: getPortalEmail('chief.executive'),
     password: 'Chief2025!',
     username: 'chief_executive',
-    fullName: 'ጫልቱ አያና',
+    fullName: 'Chief Executive',
     department: 'Chief Executive',
     departmentAm: 'ዋና ሥራ አስፈፃሚ',
     roleKey: 'ceo',
     isAdmin: false
   },
   {
-    email: 'council.speaker@woreda9.gov.et',
+    email: getPortalEmail('council.speaker'),
     password: 'Council2025!',
     username: 'council_speaker',
-    fullName: 'በየነች አንበሱ',
+    fullName: 'Council Speaker',
     department: 'Woreda Council',
     departmentAm: 'ወረዳ ምክር ቤት',
     roleKey: 'council_speaker',
     isAdmin: false
   },
   {
-    email: 'admin@woreda9.gov.et',
+    email: getPortalEmail('admin'),
     password: 'Admin2025!',
     username: 'admin',
     fullName: 'System Administrator',
@@ -121,33 +122,46 @@ async function createUsers() {
       })
 
       if (authError) {
-        if (authError.message.includes('already registered')) {
-          console.log(`⚠️  User ${userData.email} already exists, updating...`)
-          
-          // Get existing user
-          const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
-          const existingUser = existingUsers.users.find(u => u.email === userData.email)
-          
+        if (authError.message?.includes('already registered') || authError.message?.includes('already been registered')) {
+          console.log(`⚠️  User ${userData.email} already exists, linking and resetting password...`)
+
+          const { data: listed, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000,
+          })
+          if (listError) throw listError
+
+          const existingUser = listed.users.find(
+            (u) => u.email?.toLowerCase() === userData.email.toLowerCase()
+          )
+
           if (existingUser) {
-            // Update portal_users table with user_id
+            const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
+              existingUser.id,
+              {
+                password: userData.password,
+                email_confirm: true,
+              }
+            )
+            if (updateAuthError) throw updateAuthError
+
             const { error: updateError } = await supabaseAdmin
               .from('portal_users')
-              .update({ 
+              .update({
                 user_id: existingUser.id,
-                department_am: userData.departmentAm
+                department_am: userData.departmentAm,
               })
               .eq('email', userData.email)
 
             if (updateError) {
               console.error(`❌ Error updating portal_users: ${updateError.message}`)
             } else {
-              console.log(`✅ Updated portal_users for ${userData.email}`)
+              console.log(`✅ Linked and updated password for ${userData.email}`)
             }
           }
           continue
-        } else {
-          throw authError
         }
+        throw authError
       }
 
       if (!authUser.user) {
@@ -159,9 +173,9 @@ async function createUsers() {
       // Update portal_users table with user_id and department_am
       const { error: updateError } = await supabaseAdmin
         .from('portal_users')
-        .update({ 
+        .update({
           user_id: authUser.user.id,
-          department_am: userData.departmentAm
+          department_am: userData.departmentAm,
         })
         .eq('email', userData.email)
 
@@ -172,7 +186,7 @@ async function createUsers() {
       }
 
       console.log(`✅ Successfully created: ${userData.email} (${userData.departmentAm})\n`)
-
+      continue
     } catch (error) {
       console.error(`❌ Error creating user ${userData.email}:`, error.message)
       console.log('')
@@ -182,8 +196,8 @@ async function createUsers() {
   console.log('✨ User creation process completed!')
   console.log('\n📋 Summary:')
   console.log('You can now login with:')
-  portalUsers.forEach(user => {
-    console.log(`  - ${user.departmentAm}: Password you set above`)
+  portalUsers.forEach((user) => {
+    console.log(`  - ${user.email}: ${user.password}`)
   })
 }
 
