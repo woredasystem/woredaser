@@ -4,11 +4,12 @@ import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
 import { gregorianToEthiopian, ethiopianMonths, ethiopianMonthsEn } from '../utils/ethiopianCalendar'
 import { logout } from '../utils/auth'
-import { BarChart3, AlertTriangle, Users, Calendar, Edit, Download, FileText, FileSpreadsheet, TrendingUp, Search, Trash2, Building2, Settings, FolderKanban, BookOpen, BarChart2 } from 'lucide-react'
+import { BarChart3, AlertTriangle, Users, Calendar, Edit, Download, FileText, FileSpreadsheet, TrendingUp, Search, Trash2, Building2, Settings, FolderKanban, BookOpen, BarChart2, KeyRound } from 'lucide-react'
 import AppointmentReschedule from '../components/AppointmentReschedule'
 import { generateComplaintPDF } from '../utils/pdfGenerator'
 import { exportComplaintsToPDF, exportComplaintsToCSV, exportAppointmentsToPDF, exportAppointmentsToCSV } from '../utils/exportUtils'
-import AdminOfficialsPanel from '../components/AdminOfficialsPanel'
+import AdminLeadershipPanel from '../components/AdminLeadershipPanel'
+import AdminPortalUsersPanel from '../components/AdminPortalUsersPanel'
 import AdminDepartmentsPanel from '../components/AdminDepartmentsPanel'
 import AdminServicesPanel from '../components/AdminServicesPanel'
 import AdminAppointmentSettingsPanel from '../components/AdminAppointmentSettingsPanel'
@@ -425,7 +426,8 @@ export default function AdminPortal({ onBack }) {
     { id: 'content', label: lang === 'am' ? 'ተልዕኮ/ራዕይ' : 'Mission & Vision', icon: BookOpen },
     { id: 'siteStats', label: lang === 'am' ? 'ስታትስቲክስ' : 'Home Stats', icon: BarChart2 },
     { id: 'projects', label: lang === 'am' ? 'ፕሮጀክቶች' : 'Projects', icon: FolderKanban },
-    { id: 'officials', label: lang === 'am' ? 'አመራሮች' : 'Officials', icon: Users },
+    { id: 'leadership', label: lang === 'am' ? 'አመራሮች' : 'Leadership', icon: Users },
+    { id: 'portalUsers', label: lang === 'am' ? 'የፖርታል ባለሙያ' : 'Portal Officers', icon: KeyRound },
     { id: 'departments', label: lang === 'am' ? 'ክፍሎች' : 'Departments', icon: Building2 },
     { id: 'services', label: lang === 'am' ? 'አገልግሎቶች' : 'Services', icon: BarChart3 },
     { id: 'settings', label: lang === 'am' ? 'ቀጠሮ ቅንብር' : 'Booking', icon: Settings },
@@ -438,7 +440,8 @@ export default function AdminPortal({ onBack }) {
     content: { title: lang === 'am' ? 'ይዘት' : 'Site Content', subtitle: lang === 'am' ? 'ተልዕኮ፣ ራዕይ እና እሴቶች' : 'Mission, vision & values' },
     siteStats: { title: lang === 'am' ? 'ስታትስቲክስ' : 'Homepage Stats', subtitle: lang === 'am' ? 'ህዝብ፣ ብሎኮች፣ አገልግሎቶች' : 'Population, blocks, services' },
     projects: { title: lang === 'am' ? 'ፕሮጀክቶች' : 'Projects', subtitle: lang === 'am' ? 'የመነሻ ገጽ ፕሮጀክቶች' : 'Homepage projects' },
-    officials: { title: lang === 'am' ? 'አመራሮች' : 'Officials', subtitle: lang === 'am' ? 'አመራሮች እና ፓንል ተጠቃሚዎች' : 'Leaders & portal users' },
+    leadership: { title: lang === 'am' ? 'አመራሮች' : 'Leadership', subtitle: lang === 'am' ? 'በመነሻ ገጽ የሚታዩ አመራሮች' : 'Leaders shown on the public homepage' },
+    portalUsers: { title: lang === 'am' ? 'የፖርታል ባለሙያ' : 'Portal Officers', subtitle: lang === 'am' ? 'ወደ ፓንል የሚገቡ ሰራተኞች' : 'Staff login accounts for department portals' },
     departments: { title: lang === 'am' ? 'ክፍሎች' : 'Departments', subtitle: lang === 'am' ? 'የስራ ክፍሎች' : 'Department catalog' },
     services: { title: lang === 'am' ? 'አገልግሎቶች' : 'Services', subtitle: lang === 'am' ? 'የአገልግሎት ካታሎግ' : 'Service catalog' },
     settings: { title: lang === 'am' ? 'ቀጠሮ ቅንብር' : 'Booking Settings', subtitle: lang === 'am' ? 'የቀጠሮ ሰዓት እና ቀን' : 'Appointment rules' },
@@ -460,7 +463,8 @@ export default function AdminPortal({ onBack }) {
       onBack={onBack}
       onLogout={() => { logout(); onBack() }}
     >
-          {activeTab === 'officials' && <AdminOfficialsPanel />}
+          {activeTab === 'leadership' && <AdminLeadershipPanel />}
+          {activeTab === 'portalUsers' && <AdminPortalUsersPanel />}
           {activeTab === 'departments' && <AdminDepartmentsPanel />}
           {activeTab === 'services' && <AdminServicesPanel />}
           {activeTab === 'settings' && <AdminAppointmentSettingsPanel />}

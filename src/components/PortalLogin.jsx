@@ -5,7 +5,6 @@ import { useOfficials } from '../hooks/useOfficials'
 import { login, getCurrentUser, logout } from '../utils/auth'
 import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
-import { getPortalEmailForRole } from '../config/site'
 import { Shield, Lock, Mail, ArrowLeft, Building2 } from 'lucide-react'
 import PasswordInput from './PasswordInput'
 import logo from '../assets/logo1.png'
@@ -26,19 +25,14 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
   const { officials } = useOfficials()
 
   const departmentLabel = getDepartmentDisplayName(department, lang)
-  const defaultEmail = getPortalEmailForRole(roleKey)
   const accentClass = ROLE_ACCENTS[roleKey] || 'bg-mayor-royal-blue'
   const official = officials.find((o) => o.role_key === roleKey)
 
-  const [email, setEmail] = useState(defaultEmail)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [checkingAuth, setCheckingAuth] = useState(true)
-
-  useEffect(() => {
-    setEmail(defaultEmail)
-  }, [defaultEmail])
 
   useEffect(() => {
     const checkExistingAuth = async () => {
@@ -249,13 +243,13 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
                   }
                 />
               </div>
-              {defaultEmail && (
-                <p className="text-xs text-mayor-navy/45 mt-2 font-amharic">
-                  {lang === 'am'
-                    ? `የዚህ ፓንል ኢሜይል፡ ${defaultEmail}`
-                    : `Portal email: ${defaultEmail}`}
-                </p>
-              )}
+              <p className="text-xs text-mayor-navy/45 mt-2 font-amharic">
+                {lang === 'am'
+                  ? 'ከአስተዳዳሪ የተሰጠዎት ኢሜይል ያስገቡ'
+                  : lang === 'om'
+                    ? 'Imeelii adminin kenname galchaa'
+                    : 'Enter the email assigned by your administrator'}
+              </p>
             </div>
 
             <div>
