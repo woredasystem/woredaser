@@ -53,7 +53,10 @@ CREATE SCHEMA IF NOT EXISTS private;
 CREATE TABLE IF NOT EXISTS private.sms_settings (
   id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   webhook_secret TEXT NOT NULL,
-  functions_base_url TEXT NOT NULL
+  functions_base_url TEXT NOT NULL,
+  textbee_api_key TEXT,
+  textbee_device_id TEXT,
+  public_site_url TEXT DEFAULT 'https://woreda-portal.vercel.app'
 );
 
 INSERT INTO private.sms_settings (id, webhook_secret, functions_base_url)
@@ -166,6 +169,13 @@ BEGIN
       to_jsonb(NEW),
       to_jsonb(OLD)
     );
+  ELSIF TG_OP = 'UPDATE' AND NEW.appointment_date IS DISTINCT FROM OLD.appointment_date THEN
+    PERFORM private.queue_citizen_sms(
+      'appointment_rescheduled',
+      'appointments',
+      to_jsonb(NEW),
+      to_jsonb(OLD)
+    );
   END IF;
 
   RETURN NEW;
@@ -180,6 +190,26 @@ CREATE TRIGGER trg_complaint_sms
 
 DROP TRIGGER IF EXISTS trg_appointment_sms ON appointments;
 CREATE TRIGGER trg_appointment_sms
-  AFTER INSERT OR UPDATE OF status ON appointments
+  AFTER INSERT OR UPDATE OF status, appointment_date ON appointments
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_appointment_sms();
+
+-- Edge function reads config when env secrets are unavailable
+CREATE OR REPLACE FUNCTION public.get_sms_config_internal()
+RETURNS jsonb
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = private, public
+AS $$
+  SELECT jsonb_build_object(
+    'webhook_secret', s.webhook_secret,
+    'textbee_api_key', s.textbee_api_key,
+    'textbee_device_id', s.textbee_device_id,
+    'public_site_url', s.public_site_url
+  )
+  FROM private.sms_settings s
+  WHERE s.id = 1;
+$$;
+
+REVOKE ALL ON FUNCTION public.get_sms_config_internal() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_sms_config_internal() TO service_role;

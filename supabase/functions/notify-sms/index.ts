@@ -6,85 +6,242 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-sms-secret",
 };
 
-type Lang = "am" | "en" | "om";
 type SmsEvent =
   | "complaint_created"
   | "complaint_status_changed"
   | "appointment_created"
-  | "appointment_status_changed";
+  | "appointment_status_changed"
+  | "appointment_rescheduled";
 
-const STATUS_LABELS: Record<string, Record<Lang, string>> = {
-  Pending: { am: "በመጠባበቅ ላይ", en: "Pending", om: "Eegaa jiru" },
-  "In Progress": { am: "በሂደት ላይ", en: "In Progress", om: "Adeemsa irratti" },
-  Resolved: { am: "ተፈትቷል", en: "Resolved", om: "Furmaata argateera" },
-  Escalated: { am: "ወደ ላይ ተላልፏል", en: "Escalated", om: "Gara olaanaatti ergameera" },
-  Confirmed: { am: "በሂደት ላይ", en: "Confirmed", om: "Mirkanaa'eera" },
-  Rescheduled: { am: "ቀኑ ተቀይሯል", en: "Rescheduled", om: "Irra deebi'ii qindeeffameera" },
-  Completed: { am: "ተጠናቋል", en: "Completed", om: "Xumurameera" },
-  Missed: { am: "ተቀርቷል", en: "Missed", om: "Darbameera" },
+type SmsConfig = {
+  webhookSecret: string;
+  textbeeApiKey: string;
+  textbeeDeviceId: string;
+  publicSiteUrl: string;
 };
 
-function pickLang(value: unknown): Lang {
-  if (value === "en" || value === "om" || value === "am") return value;
-  return "am";
+const PORTAL = {
+  am: "ወረዳ ዲጂታል ፖርታል",
+  om: "Paanelii Tajaajila Dijitaalaa Aanaa",
+  en: "Woreda Digital Portal",
+};
+
+const STATUS_LABELS: Record<string, { am: string; om: string; en: string }> = {
+  Pending: { am: "በመጠባበቅ ላይ", om: "Eegaa jiru", en: "Pending" },
+  "In Progress": { am: "በሂደት ላይ", om: "Adeemsa irratti", en: "In Progress" },
+  Resolved: { am: "ተፈትቷል", om: "Furmaata argateera", en: "Resolved" },
+  Escalated: { am: "ወደ ላይ ተላልፏል", om: "Gara olaanaatti ergameera", en: "Escalated" },
+  Confirmed: { am: "በሂደት ላይ", om: "Mirkanaa'eera", en: "Confirmed" },
+  Rescheduled: { am: "ቀኑ ተቀይሯል", om: "Irra deebi'ii qindeeffameera", en: "Rescheduled" },
+  Completed: { am: "ተጠናቋል", om: "Xumurameera", en: "Completed" },
+  Missed: { am: "ተቀርቷል", om: "Darbameera", en: "Missed" },
+};
+
+function citizenName(record: Record<string, unknown>, table: string): string {
+  const raw = table === "complaints"
+    ? record.complainant_name
+    : record.citizen_name;
+  const name = String(raw || "").trim();
+  return name || "ደንበኛ";
 }
 
-function statusLabel(status: string, lang: Lang): string {
-  return STATUS_LABELS[status]?.[lang] ?? status;
+function statusLabels(status: string) {
+  return STATUS_LABELS[status] ?? { am: status, om: status, en: status };
 }
 
-function siteUrl(): string {
-  return (Deno.env.get("PUBLIC_SITE_URL") || "https://woreda-portal.vercel.app").replace(/\/$/, "");
-}
-
-function buildMessage(event: SmsEvent, record: Record<string, unknown>, lang: Lang): string {
-  const code = String(record.unique_code || "");
-  const base = siteUrl();
+/** Trilingual formal SMS (Style 3) — Amharic, Oromiffa, English */
+function buildMessage(
+  event: SmsEvent,
+  record: Record<string, unknown>,
+  table: string,
+  siteUrl: string,
+): string {
+  const code = String(record.unique_code || "").toUpperCase();
+  const base = siteUrl.replace(/\/$/, "");
+  const name = citizenName(record, table);
+  const trackUrl = table === "complaints"
+    ? `${base}/complaints?code=${code}`
+    : `${base}/appointments?code=${code}`;
 
   if (event === "complaint_created") {
-    const ticket = String(record.ticket_number || "");
-    const url = `${base}/complaints?code=${code}`;
-    if (lang === "en") {
-      return `Complaint received. Ticket ${ticket}. Code ${code}. Track: ${url}`;
-    }
-    if (lang === "om") {
-      return `Komii galmaa'ame. Tikkeettii ${ticket}. Koodii ${code}. Hordofaa: ${url}`;
-    }
-    return `ቅሬታዎ ተመዝግቧል። ትኬት ${ticket}። ኮድ ${code}። ተከታተል: ${url}`;
+    return [
+      `ክቡር ${name}፣`,
+      "",
+      `ቅሬታዎ በ${PORTAL.am} በተሳካ ሁኔታ ተመዝግቧል።`,
+      "",
+      "የመከታተያ ኮድዎ፦",
+      code,
+      "",
+      "ሁኔታውን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
+      trackUrl,
+      "",
+      "---",
+      `Kabajamaa ${name},`,
+      "",
+      `Komii keessan ${PORTAL.om} irratti milkaa'inaan galmaa'ameera.`,
+      "",
+      "Koodii hordofaa keessanii:",
+      code,
+      "",
+      "Haala isaa ilaaluuf as tuqaa:",
+      trackUrl,
+      "",
+      "---",
+      `Dear ${name},`,
+      "",
+      `Your complaint was successfully registered on the ${PORTAL.en}.`,
+      "",
+      "Your tracking code:",
+      code,
+      "",
+      "To follow your status, visit:",
+      trackUrl,
+    ].join("\n");
   }
 
   if (event === "complaint_status_changed") {
-    const status = statusLabel(String(record.status || ""), lang);
-    const url = `${base}/complaints?code=${code}`;
-    if (lang === "en") {
-      return `Complaint update: ${status}. Code ${code}. Track: ${url}`;
-    }
-    if (lang === "om") {
-      return `Haaromsa komii: ${status}. Koodii ${code}. Hordofaa: ${url}`;
-    }
-    return `የቅሬታ ሁኔታ: ${status}። ኮድ ${code}። ተከታተል: ${url}`;
+    const s = statusLabels(String(record.status || ""));
+    return [
+      `ክቡር ${name}፣`,
+      "",
+      `የቅሬታዎ ሁኔታ ተዘምኗል። አሁን፦ ${s.am}`,
+      "",
+      "የመከታተያ ኮድዎ፦",
+      code,
+      "",
+      "ሁኔታውን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
+      trackUrl,
+      "",
+      "---",
+      `Kabajamaa ${name},`,
+      "",
+      `Haalli komii keessanii jijjiirameera. Amma: ${s.om}`,
+      "",
+      "Koodii hordofaa keessanii:",
+      code,
+      "",
+      "Haala isaa ilaaluuf as tuqaa:",
+      trackUrl,
+      "",
+      "---",
+      `Dear ${name},`,
+      "",
+      `Your complaint status has been updated. Now: ${s.en}`,
+      "",
+      "Your tracking code:",
+      code,
+      "",
+      "To follow your status, visit:",
+      trackUrl,
+    ].join("\n");
   }
 
   if (event === "appointment_created") {
-    const url = `${base}/appointments?code=${code}`;
-    if (lang === "en") {
-      return `Appointment booked. Code ${code}. Track: ${url}`;
-    }
-    if (lang === "om") {
-      return `Beellamni qabame. Koodii ${code}. Hordofaa: ${url}`;
-    }
-    return `ቀጠሮዎ ተመዝግቧል። ኮድ ${code}። ተከታተል: ${url}`;
+    return [
+      `ክቡር ${name}፣`,
+      "",
+      `ቀጠሮዎ በ${PORTAL.am} በተሳካ ሁኔታ ተመዝግቧል።`,
+      "",
+      "የመከታተያ ኮድዎ፦",
+      code,
+      "",
+      "ቀጠሮዎን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
+      trackUrl,
+      "",
+      "---",
+      `Kabajamaa ${name},`,
+      "",
+      `Beellamni keessan ${PORTAL.om} irratti milkaa'inaan qabameera.`,
+      "",
+      "Koodii hordofaa keessanii:",
+      code,
+      "",
+      "Beellama keessan ilaaluuf as tuqaa:",
+      trackUrl,
+      "",
+      "---",
+      `Dear ${name},`,
+      "",
+      `Your appointment was successfully booked on the ${PORTAL.en}.`,
+      "",
+      "Your tracking code:",
+      code,
+      "",
+      "To follow your appointment, visit:",
+      trackUrl,
+    ].join("\n");
   }
 
-  const status = statusLabel(String(record.status || ""), lang);
-  const url = `${base}/appointments?code=${code}`;
-  if (lang === "en") {
-    return `Appointment update: ${status}. Code ${code}. Track: ${url}`;
+  if (event === "appointment_rescheduled") {
+    return [
+      `ክቡር ${name}፣`,
+      "",
+      `ቀጠሮዎ ቀኑ ተቀይሯል። እባክዎ አዲሱን ቀን በ${PORTAL.am} ይመልከቱ።`,
+      "",
+      "የመከታተያ ኮድዎ፦",
+      code,
+      "",
+      "ዝርዝር ለመመልከት ይሄንን ድረ-ገጽ ይጎብኙ፦",
+      trackUrl,
+      "",
+      "---",
+      `Kabajamaa ${name},`,
+      "",
+      `Guyyaan beellama keessanii jijjiirameera. ${PORTAL.om} irratti ilaalaa.`,
+      "",
+      "Koodii hordofaa keessanii:",
+      code,
+      "",
+      "Bal'inaaf as tuqaa:",
+      trackUrl,
+      "",
+      "---",
+      `Dear ${name},`,
+      "",
+      `Your appointment date has changed. Please check the ${PORTAL.en}.`,
+      "",
+      "Your tracking code:",
+      code,
+      "",
+      "For details, visit:",
+      trackUrl,
+    ].join("\n");
   }
-  if (lang === "om") {
-    return `Haaromsa beellamaa: ${status}. Koodii ${code}. Hordofaa: ${url}`;
-  }
-  return `የቀጠሮ ሁኔታ: ${status}። ኮድ ${code}። ተከታተል: ${url}`;
+
+  const s = statusLabels(String(record.status || ""));
+  return [
+    `ክቡር ${name}፣`,
+    "",
+    `የቀጠሮዎ ሁኔታ ተዘምኗል። አሁን፦ ${s.am}`,
+    "",
+    "የመከታተያ ኮድዎ፦",
+    code,
+    "",
+    "ቀጠሮዎን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
+    trackUrl,
+    "",
+    "---",
+    `Kabajamaa ${name},`,
+    "",
+    `Haalli beellama keessanii jijjiirameera. Amma: ${s.om}`,
+    "",
+    "Koodii hordofaa keessanii:",
+    code,
+    "",
+    "Beellama keessan ilaaluuf as tuqaa:",
+    trackUrl,
+    "",
+    "---",
+    `Dear ${name},`,
+    "",
+    `Your appointment status has been updated. Now: ${s.en}`,
+    "",
+    "Your tracking code:",
+    code,
+    "",
+    "To follow your appointment, visit:",
+    trackUrl,
+  ].join("\n");
 }
 
 function normalizePhone(phone: string): string | null {
@@ -94,20 +251,47 @@ function normalizePhone(phone: string): string | null {
   return null;
 }
 
-async function sendTextBee(recipient: string, message: string) {
-  const apiKey = Deno.env.get("TEXTBEE_API_KEY");
-  const deviceId = Deno.env.get("TEXTBEE_DEVICE_ID");
-  if (!apiKey || !deviceId) {
+async function loadSmsConfig(supabaseAdmin: ReturnType<typeof createClient>): Promise<SmsConfig> {
+  const envConfig: SmsConfig = {
+    webhookSecret: Deno.env.get("SMS_WEBHOOK_SECRET") || "",
+    textbeeApiKey: Deno.env.get("TEXTBEE_API_KEY") || "",
+    textbeeDeviceId: Deno.env.get("TEXTBEE_DEVICE_ID") || "",
+    publicSiteUrl: Deno.env.get("PUBLIC_SITE_URL") || "",
+  };
+
+  if (envConfig.webhookSecret && envConfig.textbeeApiKey && envConfig.textbeeDeviceId) {
+    return {
+      ...envConfig,
+      publicSiteUrl: envConfig.publicSiteUrl || "https://woreda-portal.vercel.app",
+    };
+  }
+
+  const { data, error } = await supabaseAdmin.rpc("get_sms_config_internal");
+  if (error || !data) {
+    throw new Error("SMS config not found. Set Edge Function secrets or private.sms_settings.");
+  }
+
+  const row = data as Record<string, string>;
+  return {
+    webhookSecret: envConfig.webhookSecret || row.webhook_secret || "",
+    textbeeApiKey: envConfig.textbeeApiKey || row.textbee_api_key || "",
+    textbeeDeviceId: envConfig.textbeeDeviceId || row.textbee_device_id || "",
+    publicSiteUrl: envConfig.publicSiteUrl || row.public_site_url || "https://woreda-portal.vercel.app",
+  };
+}
+
+async function sendTextBee(config: SmsConfig, recipient: string, message: string) {
+  if (!config.textbeeApiKey || !config.textbeeDeviceId) {
     throw new Error("TextBee credentials not configured");
   }
 
   const res = await fetch(
-    `https://api.textbee.dev/api/v1/gateway/devices/${deviceId}/send-sms`,
+    `https://api.textbee.dev/api/v1/gateway/devices/${config.textbeeDeviceId}/send-sms`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": apiKey,
+        "x-api-key": config.textbeeApiKey,
       },
       body: JSON.stringify({ recipients: [recipient], message }),
     },
@@ -141,10 +325,16 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
   try {
-    const webhookSecret = Deno.env.get("SMS_WEBHOOK_SECRET");
+    const config = await loadSmsConfig(supabaseAdmin);
     const incomingSecret = req.headers.get("x-sms-secret");
-    if (!webhookSecret || incomingSecret !== webhookSecret) {
+
+    if (!config.webhookSecret || incomingSecret !== config.webhookSecret) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -182,16 +372,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const lang = pickLang(record.preferred_lang);
-    const message = buildMessage(event, record, lang);
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const message = buildMessage(event, record, table, config.publicSiteUrl);
 
     try {
-      const providerResponse = await sendTextBee(phone, message);
+      const providerResponse = await sendTextBee(config, phone, message);
       await logSms(supabaseAdmin, {
         event_type: event,
         table_name: table,
