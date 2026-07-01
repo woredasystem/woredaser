@@ -6,7 +6,7 @@ import { getPortalEmail } from '../src/config/site.js'
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://rbbyniuqdukfehbacgyo.supabase.co'
 const serviceRoleKey = process.argv[2] || process.env.SUPABASE_SERVICE_ROLE_KEY
-const adminPassword = process.env.ADMIN_PASSWORD || 'WoredaAdmin2026!'
+const adminPassword = process.env.ADMIN_PASSWORD || 'Admin2025!'
 
 if (!serviceRoleKey) {
   console.error('Usage: node scripts/bootstrap-admin.js <SERVICE_ROLE_KEY>')

@@ -19,13 +19,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: window.localStorage, // Use localStorage for session persistence across page refreshes
     flowType: 'pkce'
   },
-  global: {
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
-  },
   db: {
     schema: 'public'
   },

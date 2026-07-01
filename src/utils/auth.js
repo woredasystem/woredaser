@@ -93,14 +93,9 @@ export async function login(departmentNameOrEmail, password) {
       email = departmentNameOrEmail.trim().toLowerCase()
     }
 
-    // Sign in with Supabase Auth with retry
-    const { data: authData, error: authError } = await retryWithBackoff(async () => {
-      const result = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-      if (result.error) throw result.error
-      return result
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
     })
 
     if (authError) {
