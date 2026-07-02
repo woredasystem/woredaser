@@ -362,23 +362,34 @@ async function sendTextBee(config: SmsConfig, recipient: string, message: string
     throw new Error("TextBee credentials not configured");
   }
 
-  const res = await fetch(
-    `https://api.textbee.dev/api/v1/gateway/devices/${config.textbeeDeviceId}/send-sms`,
-    {
+  const url =
+    `https://api.textbee.dev/api/v1/gateway/devices/${config.textbeeDeviceId}/send-sms`;
+
+  let lastError = "TextBee request failed";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": config.textbeeApiKey,
       },
       body: JSON.stringify({ recipients: [recipient], message }),
-    },
-  );
+    });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(`TextBee error ${res.status}: ${JSON.stringify(data)}`);
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return data;
+    }
+
+    lastError = `TextBee error ${res.status}: ${JSON.stringify(data)}`;
+    const retryable = res.status === 502 || res.status === 503 || res.status === 429 || res.status === 504;
+    if (!retryable || attempt === 3) {
+      throw new Error(lastError);
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
   }
-  return data;
+
+  throw new Error(lastError);
 }
 
 async function logSms(

@@ -110,7 +110,8 @@ BEGIN
       'Content-Type', 'application/json',
       'x-sms-secret', v_secret
     ),
-    body := v_payload
+    body := v_payload,
+    timeout_milliseconds := 120000
   );
 END;
 $$;
