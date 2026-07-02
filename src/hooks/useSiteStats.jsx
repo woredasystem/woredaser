@@ -1,37 +1,48 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-
-const SAMPLE_STATS = { population: 125000, blocks: 12, services_count: 58 }
+import { DEFAULT_STAT_ITEMS, mapStatRow } from '../utils/siteStatPresets'
 
 const SiteStatsContext = createContext({
-  stats: SAMPLE_STATS,
+  items: [],
   loading: true,
   refreshSiteStats: async () => {},
+  /** @deprecated use items */
+  stats: { population: 0, blocks: 0, services_count: 0 },
 })
 
+function buildLegacyStats(items) {
+  const find = (hints) =>
+    items.find((i) => hints.some((h) => i.label_en?.toLowerCase().includes(h) || i.label_am?.includes(h)))
+  return {
+    population: find(['population', 'ህዝብ'])?.value ?? items[0]?.value ?? 0,
+    blocks: find(['blocks', 'ብሎኮች'])?.value ?? items[1]?.value ?? 0,
+    services_count: find(['services', 'አገልግሎት'])?.value ?? items[2]?.value ?? 0,
+  }
+}
+
 export function SiteStatsProvider({ children }) {
-  const [stats, setStats] = useState(SAMPLE_STATS)
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
 
   const refreshSiteStats = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('site_stats')
-        .select('population, blocks, services_count')
-        .eq('id', 1)
-        .maybeSingle()
+        .from('site_stat_items')
+        .select('*')
+        .order('sort_order', { ascending: true })
 
       if (error) throw error
-      if (data) {
-        setStats({
-          population: Number(data.population) || 0,
-          blocks: Number(data.blocks) || 0,
-          services_count: Number(data.services_count) || 0,
-        })
+
+      if (data?.length) {
+        setItems(data.map(mapStatRow))
+        return
       }
+
+      setItems(DEFAULT_STAT_ITEMS.map((item, idx) => ({ ...item, id: `default-${idx}`, is_active: true })))
     } catch (err) {
-      console.error('Failed to load site stats:', err)
+      console.error('Failed to load site stat items:', err)
+      setItems(DEFAULT_STAT_ITEMS.map((item, idx) => ({ ...item, id: `default-${idx}`, is_active: true })))
     } finally {
       setLoading(false)
     }
@@ -41,8 +52,16 @@ export function SiteStatsProvider({ children }) {
     refreshSiteStats()
   }, [refreshSiteStats])
 
+  const value = {
+    items: items.filter((i) => i.is_active !== false),
+    allItems: items,
+    loading,
+    refreshSiteStats,
+    stats: buildLegacyStats(items),
+  }
+
   return (
-    <SiteStatsContext.Provider value={{ stats, loading, refreshSiteStats }}>
+    <SiteStatsContext.Provider value={value}>
       {children}
     </SiteStatsContext.Provider>
   )

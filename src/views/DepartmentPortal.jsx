@@ -356,49 +356,49 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
     >
           {/* Stats Cards - overview tab */}
           {activeTab === 'overview' && (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-            <div className="gov-card p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="gov-card p-3 sm:p-4">
               <div className="flex items-center gap-3">
-                <AlertCircle className="w-8 h-8 text-yellow-500" />
-                <div>
-                  <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'በመጠባበቅ ላይ' : lang === 'om' ? 'Eegaa jiru' : 'Pending'}</p>
-                  <p className="text-2xl font-bold text-mayor-navy">{stats.pendingComplaints}</p>
+                <AlertCircle className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-mayor-navy/70 font-amharic truncate">{lang === 'am' ? 'በመጠባበቅ ላይ' : lang === 'om' ? 'Eegaa jiru' : 'Pending'}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-mayor-navy">{stats.pendingComplaints}</p>
                 </div>
               </div>
             </div>
-            <div className="gov-card p-4">
+            <div className="gov-card p-3 sm:p-4">
               <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-mayor-royal-blue" />
-                <div>
-                  <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'በሂደት ላይ' : lang === 'om' ? 'Adeemsa irratti' : 'In Progress'}</p>
-                  <p className="text-2xl font-bold text-mayor-navy">{stats.inProgressComplaints}</p>
+                <Clock className="w-7 h-7 sm:w-8 sm:h-8 text-mayor-royal-blue shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-mayor-navy/70 font-amharic truncate">{lang === 'am' ? 'በሂደት ላይ' : lang === 'om' ? 'Adeemsa irratti' : 'In Progress'}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-mayor-navy">{stats.inProgressComplaints}</p>
                 </div>
               </div>
             </div>
-            <div className="gov-card p-4">
+            <div className="gov-card p-3 sm:p-4">
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-                <div>
-                  <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'ተፈትቷል' : lang === 'om' ? 'Furmaata argateera' : 'Resolved'}</p>
-                  <p className="text-2xl font-bold text-mayor-navy">{stats.resolvedComplaints}</p>
+                <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 text-green-600 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-mayor-navy/70 font-amharic truncate">{lang === 'am' ? 'ተፈትቷል' : lang === 'om' ? 'Furmaata argateera' : 'Resolved'}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-mayor-navy">{stats.resolvedComplaints}</p>
                 </div>
               </div>
             </div>
-            <div className="gov-card p-4">
+            <div className="gov-card p-3 sm:p-4">
               <div className="flex items-center gap-3">
-                <Calendar className="w-8 h-8 text-mayor-highlight-blue" />
-                <div>
-                  <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'ዛሬ ቀጠሮ' : lang === 'om' ? 'Har\'a' : 'Today'}</p>
-                  <p className="text-2xl font-bold text-mayor-navy">{stats.todayAppointments}</p>
+                <Calendar className="w-7 h-7 sm:w-8 sm:h-8 text-mayor-highlight-blue shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-mayor-navy/70 font-amharic truncate">{lang === 'am' ? 'ዛሬ ቀጠሮ' : lang === 'om' ? 'Har\'a' : 'Today'}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-mayor-navy">{stats.todayAppointments}</p>
                 </div>
               </div>
             </div>
-            <div className="gov-card p-4">
+            <div className="gov-card p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3">
-                <Calendar className="w-8 h-8 text-mayor-deep-blue" />
-                <div>
-                  <p className="text-sm text-mayor-navy/70 font-amharic">{lang === 'am' ? 'የሚመጡ' : lang === 'om' ? 'Dhufaa jiru' : 'Upcoming'}</p>
-                  <p className="text-2xl font-bold text-mayor-navy">{stats.upcomingAppointments}</p>
+                <Calendar className="w-7 h-7 sm:w-8 sm:h-8 text-mayor-deep-blue shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-mayor-navy/70 font-amharic truncate">{lang === 'am' ? 'የሚመጡ' : lang === 'om' ? 'Dhufaa jiru' : 'Upcoming'}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-mayor-navy">{stats.upcomingAppointments}</p>
                 </div>
               </div>
             </div>
@@ -408,10 +408,10 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
           {activeTab === 'complaints' && (
           <>
           {/* Complaints Sub-Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-mayor-gray-divider">
+            <div className="flex gap-1 sm:gap-2 mb-6 border-b border-mayor-gray-divider overflow-x-auto -mx-1 px-1 scrollbar-none">
               <button
                 onClick={() => setComplaintsSubTab('pending')}
-                className={`px-6 py-3 font-amharic font-semibold transition-colors ${complaintsSubTab === 'pending'
+                className={`px-4 sm:px-6 py-2.5 sm:py-3 font-amharic font-semibold transition-colors whitespace-nowrap shrink-0 text-sm sm:text-base ${complaintsSubTab === 'pending'
                   ? 'text-mayor-royal-blue border-b-2 border-mayor-royal-blue'
                   : 'text-mayor-navy/60 hover:text-mayor-navy'
                   }`}
@@ -420,7 +420,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
               </button>
               <button
                 onClick={() => setComplaintsSubTab('responses')}
-                className={`px-6 py-3 font-amharic font-semibold transition-colors ${complaintsSubTab === 'responses'
+                className={`px-4 sm:px-6 py-2.5 sm:py-3 font-amharic font-semibold transition-colors whitespace-nowrap shrink-0 text-sm sm:text-base ${complaintsSubTab === 'responses'
                   ? 'text-mayor-royal-blue border-b-2 border-mayor-royal-blue'
                   : 'text-mayor-navy/60 hover:text-mayor-navy'
                   }`}
@@ -466,11 +466,11 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                     .slice(0, 2)
 
                   return (
-                    <div key={complaint.id} className="gov-card p-6 hover:shadow-gov-md transition-all border-l-4 border-l-mayor-royal-blue">
-                      <div className="flex gap-4">
+                    <div key={complaint.id} className="gov-card p-4 sm:p-6 hover:shadow-gov-md transition-all border-l-4 border-l-mayor-royal-blue">
+                      <div className="flex flex-col sm:flex-row gap-4">
                         {/* Photo/Avatar */}
-                        <div className="flex-shrink-0">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-mayor-royal-blue to-mayor-highlight-blue flex items-center justify-center shadow-gov">
+                        <div className="flex-shrink-0 self-start">
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-mayor-royal-blue to-mayor-highlight-blue flex items-center justify-center shadow-gov">
                             <span className="text-white font-bold text-lg">
                               {initials}
                             </span>
@@ -479,9 +479,9 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
                                 <span className="text-mayor-navy/60 text-sm font-amharic">
                                   የትኬት ቁጥር: <span className="font-semibold text-mayor-navy">{complaint.ticket_number}</span>
                                 </span>
@@ -491,14 +491,14 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                                   </span>
                                 )}
                               </div>
-                              <h3 className="text-xl font-bold text-mayor-navy font-amharic mb-1">
+                              <h3 className="text-lg sm:text-xl font-bold text-mayor-navy font-amharic mb-1 break-words">
                                 {complaint.complainant_name}
                               </h3>
                               <p className="text-mayor-navy/70 text-sm font-amharic mb-2">
                                 <span className="font-semibold">{lang === 'am' ? 'ስልክ:' : lang === 'om' ? 'Bilbila:' : 'Phone:'}</span> {complaint.complainant_phone}
                               </p>
                             </div>
-                            <span className={`px-3 py-1 rounded-gov text-white text-sm whitespace-nowrap ${getStatusColor(complaint.status)}`}>
+                            <span className={`self-start px-3 py-1 rounded-gov text-white text-xs sm:text-sm whitespace-nowrap ${getStatusColor(complaint.status)}`}>
                               {getStatusAmharic(complaint.status)}
                             </span>
                           </div>
@@ -542,7 +542,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                           )}
 
                           {/* Action Buttons */}
-                          <div className="flex gap-2 mt-4 pt-4 border-t border-mayor-gray-divider flex-wrap">
+                          <div className="flex gap-2 mt-4 pt-4 border-t border-mayor-gray-divider flex-wrap [&_button]:text-xs sm:[&_button]:text-sm [&_button]:px-3 sm:[&_button]:px-4">
                             <button
                               onClick={() => {
                                 setDetailComplaint(complaint)
@@ -625,11 +625,11 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                     .slice(0, 2)
 
                   return (
-                    <div key={appointment.id} className="gov-card p-6 hover:shadow-gov-md transition-all border-l-4 border-l-mayor-highlight-blue">
-                      <div className="flex gap-4">
+                    <div key={appointment.id} className="gov-card p-4 sm:p-6 hover:shadow-gov-md transition-all border-l-4 border-l-mayor-highlight-blue">
+                      <div className="flex flex-col sm:flex-row gap-4">
                         {/* Photo/Avatar */}
-                        <div className="flex-shrink-0">
-                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-mayor-highlight-blue to-mayor-royal-blue flex items-center justify-center shadow-gov">
+                        <div className="flex-shrink-0 self-start">
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-mayor-highlight-blue to-mayor-royal-blue flex items-center justify-center shadow-gov">
                             <span className="text-white font-bold text-lg">
                               {initials}
                             </span>
@@ -638,9 +638,9 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-mayor-navy font-amharic mb-1">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg sm:text-xl font-bold text-mayor-navy font-amharic mb-1 break-words">
                                 {appointment.citizen_name}
                               </h3>
                               {appointment.citizen_phone && (
@@ -649,7 +649,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                                 </p>
                               )}
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 self-start flex-wrap">
                               {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
                                 <button
                                   onClick={() => {
@@ -662,7 +662,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                                   <Edit className="w-4 h-4" />
                                 </button>
                               )}
-                              <span className={`px-3 py-1 rounded-gov text-white text-sm whitespace-nowrap ${getStatusColor(appointment.status)}`}>
+                              <span className={`px-3 py-1 rounded-gov text-white text-xs sm:text-sm whitespace-nowrap ${getStatusColor(appointment.status)}`}>
                                 {getStatusAmharic(appointment.status)}
                               </span>
                             </div>
@@ -675,7 +675,7 @@ export default function DepartmentPortal({ department, roleKey, onBack }) {
                           </p>
                           {/* Action Buttons */}
                           {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
-                            <div className="flex gap-2 mt-4 pt-4 border-t border-mayor-gray-divider">
+                            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-mayor-gray-divider [&_button]:text-xs sm:[&_button]:text-sm">
                               <button
                                 onClick={() => updateAppointmentStatus(appointment.id, 'Completed')}
                                 className="px-4 py-2 bg-green-600 text-white rounded-gov hover:bg-green-700 transition-colors text-sm font-amharic"

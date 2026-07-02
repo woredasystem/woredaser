@@ -5,6 +5,7 @@ import { useServices } from '../hooks/useServices'
 import { supabase } from '../lib/supabase'
 import { showToast } from './ToastContainer'
 import { CalendarClock } from 'lucide-react'
+import AdminFormTip from './admin/AdminFormTip'
 
 export default function AdminAppointmentSettingsPanel() {
   const { lang } = useLanguage()
@@ -73,6 +74,11 @@ export default function AdminAppointmentSettingsPanel() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6 max-w-xl">
+        <AdminFormTip>
+          {lang === 'am'
+            ? 'ጎብኝቶች በእነዚህ ሰዓቶች ውስጥ ብቻ ቀጠሮ ማዘዝ ይችላሉ — ለቀጠሮ የምትፈቀዱ ዘርፎችንም ይምረጡ።'
+            : 'Citizens can only book during these hours — enable the sectors you want available for appointments.'}
+        </AdminFormTip>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-amharic mb-1">{lang === 'am' ? 'መጀመሪያ ሰዓት' : 'Start hour'}</label>

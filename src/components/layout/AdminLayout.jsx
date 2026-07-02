@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X, LogOut, ArrowLeft, PanelLeftClose, PanelLeft } from 'lucide-react'
 import { useLanguage } from '../../hooks/useLanguage'
 import BrandSunburst from '../brand/BrandSunburst'
@@ -17,10 +17,20 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
-  const sidebarWidth = collapsed ? 'lg:w-[72px]' : 'lg:w-64'
+  const sidebarWidthClass = collapsed ? 'lg:w-[72px]' : 'lg:w-64'
+  const mainInsetClass = collapsed ? 'lg:pl-[72px]' : 'lg:pl-64'
+
+  useEffect(() => {
+    if (!sidebarOpen) return undefined
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [sidebarOpen])
 
   return (
-    <div className="min-h-screen bg-slate-100 flex">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-100 w-full max-w-[100vw] overflow-x-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <button
@@ -31,14 +41,16 @@ export default function AdminLayout({
         />
       )}
 
-      {/* Sidebar */}
-      <BrandSunburst
-        as="aside"
-        variant="subtle"
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen flex flex-col text-white transition-all duration-300
+      {/* Sidebar — always fixed; only main content scrolls */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-[100dvh] flex flex-col transition-all duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          w-64 ${sidebarWidth} shadow-xl lg:shadow-none`}
+          w-64 max-w-[88vw] ${sidebarWidthClass} shadow-xl lg:shadow-none lg:border-r lg:border-white/10`}
       >
+        <BrandSunburst
+          variant="subtle"
+          className="h-full w-full flex flex-col text-white"
+        >
         <div className={`flex items-center border-b border-white/10 p-4 ${collapsed ? 'lg:justify-center' : 'justify-between'}`}>
           {!collapsed && (
             <div className="min-w-0">
@@ -119,30 +131,34 @@ export default function AdminLayout({
             {!collapsed && <span>{lang === 'am' ? 'ውጣ' : 'Logout'}</span>}
           </button>
         </div>
-      </BrandSunburst>
+        </BrandSunburst>
+      </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-white border-b border-mayor-gray-divider px-4 sm:px-6 py-4 flex items-center gap-4">
+      {/* Main content — padding inset clears fixed sidebar without overflowing viewport */}
+      <div
+        className={`w-full min-w-0 flex flex-col min-h-[100dvh] box-border transition-[padding] duration-300 ${mainInsetClass}`}
+      >
+        <header className="sticky top-0 z-30 bg-white border-b border-mayor-gray-divider px-4 sm:px-5 lg:px-6 py-3 sm:py-4 flex items-center gap-3">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-mayor-navy"
+            className="lg:hidden p-2 -ml-1 rounded-lg hover:bg-slate-100 text-mayor-navy shrink-0"
+            aria-label={lang === 'am' ? 'ምናሌ ክፈት' : 'Open menu'}
           >
             <Menu className="w-6 h-6" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg sm:text-xl font-bold text-mayor-navy font-amharic truncate">
+            <h1 className="text-base sm:text-lg md:text-xl font-bold text-mayor-navy font-amharic truncate">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm text-mayor-navy/60 font-amharic truncate">{subtitle}</p>
+              <p className="text-xs sm:text-sm text-mayor-navy/60 font-amharic truncate">{subtitle}</p>
             )}
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 min-w-0 px-4 sm:px-5 lg:px-6 py-4 sm:py-6 overflow-x-hidden">
+          <div className="w-full min-w-0">
             {children}
           </div>
         </main>

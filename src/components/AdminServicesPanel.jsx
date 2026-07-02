@@ -4,6 +4,9 @@ import { useServices } from '../hooks/useServices'
 import { supabase } from '../lib/supabase'
 import { showToast } from './ToastContainer'
 import { FileText, Plus, Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react'
+import MultilingualFormHint from './admin/MultilingualFormHint'
+import MultilingualFieldLabel from './admin/MultilingualFieldLabel'
+import { validateAmharicFields, trimOptional } from '../utils/multilingualForm'
 
 const emptySector = {
   sector_key: '',
@@ -90,10 +93,14 @@ export default function AdminServicesPanel() {
     e.preventDefault()
     setSaving(true)
     try {
+      validateAmharicFields(sectorForm, lang, {
+        name_am: { am: 'ስም (አማርኛ)', en: 'Name (Amharic)' },
+      })
+
       const payload = {
         sector_key: sectorForm.sector_key.trim(),
         name_am: sectorForm.name_am.trim(),
-        name_en: sectorForm.name_en.trim(),
+        name_en: trimOptional(sectorForm.name_en),
         department_role_key: sectorForm.department_role_key.trim() || null,
         sort_order: Number(sectorForm.sort_order) || 0,
       }
@@ -122,16 +129,20 @@ export default function AdminServicesPanel() {
     if (!activeSectorId) return
     setSaving(true)
     try {
+      validateAmharicFields(itemForm, lang, {
+        name_am: { am: 'ስም (አማርኛ)', en: 'Name (Amharic)' },
+      })
+
       const payload = {
         sector_id: activeSectorId,
         name_am: itemForm.name_am.trim(),
-        name_en: itemForm.name_en.trim(),
-        requirements_am: itemForm.requirements_am.trim() || null,
-        requirements_en: itemForm.requirements_en.trim() || null,
+        name_en: trimOptional(itemForm.name_en),
+        requirements_am: trimOptional(itemForm.requirements_am),
+        requirements_en: trimOptional(itemForm.requirements_en),
         fee: itemForm.fee !== '' ? Number(itemForm.fee) : null,
         standard_time: itemForm.standard_time.trim() || null,
-        payment_method_am: itemForm.payment_method_am.trim() || null,
-        payment_method_en: itemForm.payment_method_en.trim() || null,
+        payment_method_am: trimOptional(itemForm.payment_method_am),
+        payment_method_en: trimOptional(itemForm.payment_method_en),
         is_bookable: !!itemForm.is_bookable,
         is_active: !!itemForm.is_active,
         sort_order: Number(itemForm.sort_order) || 0,
@@ -217,14 +228,23 @@ export default function AdminServicesPanel() {
       </div>
 
       {showSectorForm && (
-        <form onSubmit={saveSector} className="mb-6 p-4 bg-slate-50 rounded-gov-lg grid md:grid-cols-2 gap-4">
+        <form onSubmit={saveSector} className="mb-6 p-4 bg-slate-50 rounded-gov-lg space-y-4">
+          <MultilingualFormHint lang={lang} variant="services" />
+          <div className="grid md:grid-cols-2 gap-4">
           <input required disabled={!!editingSectorId} placeholder="sector_key" value={sectorForm.sector_key} onChange={(e) => setSectorForm({ ...sectorForm, sector_key: e.target.value })} className="px-4 py-2 border rounded-gov disabled:bg-gray-100" />
           <input placeholder="department_role_key" value={sectorForm.department_role_key} onChange={(e) => setSectorForm({ ...sectorForm, department_role_key: e.target.value })} className="px-4 py-2 border rounded-gov" />
-          <input required placeholder={lang === 'am' ? 'ስም አማ' : 'Name Amharic'} value={sectorForm.name_am} onChange={(e) => setSectorForm({ ...sectorForm, name_am: e.target.value })} className="px-4 py-2 border rounded-gov" />
-          <input required placeholder={lang === 'am' ? 'ስም እንግ' : 'Name English'} value={sectorForm.name_en} onChange={(e) => setSectorForm({ ...sectorForm, name_en: e.target.value })} className="px-4 py-2 border rounded-gov" />
+          <div>
+            <MultilingualFieldLabel lang={lang} code="am" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+            <input required value={sectorForm.name_am} onChange={(e) => setSectorForm({ ...sectorForm, name_am: e.target.value })} className="w-full px-4 py-2 border rounded-gov font-amharic" />
+          </div>
+          <div>
+            <MultilingualFieldLabel lang={lang} code="en" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+            <input value={sectorForm.name_en} onChange={(e) => setSectorForm({ ...sectorForm, name_en: e.target.value })} className="w-full px-4 py-2 border rounded-gov" />
+          </div>
           <div className="md:col-span-2 flex gap-2">
             <button type="submit" disabled={saving} className="gov-button px-6 py-2">{lang === 'am' ? 'አስቀምጥ' : 'Save'}</button>
             <button type="button" onClick={() => setShowSectorForm(false)} className="px-6 py-2 border rounded-gov">{lang === 'am' ? 'ሰርዝ' : 'Cancel'}</button>
+          </div>
           </div>
         </form>
       )}
@@ -266,14 +286,27 @@ export default function AdminServicesPanel() {
 
                 {showItemForm && (
                   <form onSubmit={saveItem} className="mb-4 p-4 bg-white border rounded-gov space-y-3">
+                    <MultilingualFormHint lang={lang} variant="services" />
                     <div className="grid md:grid-cols-2 gap-3">
-                      <input required placeholder={lang === 'am' ? 'ስም አማ' : 'Name Amharic'} value={itemForm.name_am} onChange={(e) => setItemForm({ ...itemForm, name_am: e.target.value })} className="px-3 py-2 border rounded-gov text-sm" />
-                      <input required placeholder={lang === 'am' ? 'ስም እንግ' : 'Name English'} value={itemForm.name_en} onChange={(e) => setItemForm({ ...itemForm, name_en: e.target.value })} className="px-3 py-2 border rounded-gov text-sm" />
+                      <div>
+                        <MultilingualFieldLabel lang={lang} code="am" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+                        <input required value={itemForm.name_am} onChange={(e) => setItemForm({ ...itemForm, name_am: e.target.value })} className="w-full px-3 py-2 border rounded-gov text-sm font-amharic" />
+                      </div>
+                      <div>
+                        <MultilingualFieldLabel lang={lang} code="en" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+                        <input value={itemForm.name_en} onChange={(e) => setItemForm({ ...itemForm, name_en: e.target.value })} className="w-full px-3 py-2 border rounded-gov text-sm" />
+                      </div>
                       <input placeholder={lang === 'am' ? 'ክፍያ' : 'Fee'} value={itemForm.fee} onChange={(e) => setItemForm({ ...itemForm, fee: e.target.value })} className="px-3 py-2 border rounded-gov text-sm" />
                       <input placeholder={lang === 'am' ? 'ጊዜ' : 'Standard time'} value={itemForm.standard_time} onChange={(e) => setItemForm({ ...itemForm, standard_time: e.target.value })} className="px-3 py-2 border rounded-gov text-sm" />
                     </div>
-                    <textarea placeholder={lang === 'am' ? 'መስፈርቶች አማ' : 'Requirements Amharic'} value={itemForm.requirements_am} onChange={(e) => setItemForm({ ...itemForm, requirements_am: e.target.value })} className="w-full px-3 py-2 border rounded-gov text-sm" rows={2} />
-                    <textarea placeholder={lang === 'am' ? 'መስፈርቶች እንግ' : 'Requirements English'} value={itemForm.requirements_en} onChange={(e) => setItemForm({ ...itemForm, requirements_en: e.target.value })} className="w-full px-3 py-2 border rounded-gov text-sm" rows={2} />
+                    <div>
+                      <MultilingualFieldLabel lang={lang} code="am" fieldName={lang === 'am' ? 'መስፈርቶች' : 'Requirements'} required={false} />
+                      <textarea value={itemForm.requirements_am} onChange={(e) => setItemForm({ ...itemForm, requirements_am: e.target.value })} className="w-full px-3 py-2 border rounded-gov text-sm font-amharic" rows={2} />
+                    </div>
+                    <div>
+                      <MultilingualFieldLabel lang={lang} code="en" fieldName={lang === 'am' ? 'መስፈርቶች' : 'Requirements'} required={false} />
+                      <textarea value={itemForm.requirements_en} onChange={(e) => setItemForm({ ...itemForm, requirements_en: e.target.value })} className="w-full px-3 py-2 border rounded-gov text-sm" rows={2} />
+                    </div>
                     <div className="flex gap-4 text-sm">
                       <label className="flex items-center gap-1"><input type="checkbox" checked={itemForm.is_bookable} onChange={(e) => setItemForm({ ...itemForm, is_bookable: e.target.checked })} />{lang === 'am' ? 'ቀጠሮ' : 'Bookable'}</label>
                       <label className="flex items-center gap-1"><input type="checkbox" checked={itemForm.is_active} onChange={(e) => setItemForm({ ...itemForm, is_active: e.target.checked })} />{lang === 'am' ? 'ንቁ' : 'Active'}</label>

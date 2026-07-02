@@ -75,7 +75,7 @@ function StatCard({ icon: Icon, label, value, sub, accent = 'royal', trend }) {
 
 function ChartCard({ title, subtitle, children, className = '' }) {
   return (
-    <div className={`bg-white border-2 border-mayor-gray-divider rounded-2xl overflow-hidden ${className}`}>
+    <div className={`bg-white border-2 border-mayor-gray-divider rounded-2xl overflow-hidden min-w-0 ${className}`}>
       <div className="h-1 bg-mayor-royal-blue" />
       <div className="p-5 sm:p-6">
         <h3 className="text-lg font-bold text-mayor-navy font-amharic">{title}</h3>
@@ -244,9 +244,9 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
   const isAm = lang === 'am'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 w-full">
       {/* KPI grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 min-w-0">
         <StatCard
           icon={BarChart3}
           label={isAm ? 'ጠቅላላ ቅሬታዎች' : 'Total Complaints'}
@@ -314,8 +314,8 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
                   <stop offset="100%" stopColor={BRAND.royal} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradAppointments" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={BRAND.highlight} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={BRAND.highlight} stopOpacity={0} />
+                  <stop offset="0%" stopColor={BRAND.pending} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={BRAND.pending} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#E3E3E3" vertical={false} />
@@ -335,7 +335,7 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
                 type="monotone"
                 dataKey="appointments"
                 name={isAm ? 'ቀጠሮዎች' : 'Appointments'}
-                stroke={BRAND.highlight}
+                stroke={BRAND.pending}
                 strokeWidth={2}
                 fill="url(#gradAppointments)"
               />
@@ -344,7 +344,7 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
         </div>
       </ChartCard>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 min-w-0">
         {/* Stacked bar - complaints by department */}
         <ChartCard
           title={isAm ? 'ቅሬታዎች በየስራ ክፍሉ' : 'Complaints by Department'}
@@ -383,7 +383,8 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
               {isAm ? 'ቅሬታ የለም' : 'No complaints yet'}
             </p>
           ) : (
-            <div className="h-72 flex flex-col sm:flex-row items-center gap-4">
+            <div className="h-72 flex flex-col sm:flex-row items-center gap-4 min-w-0">
+              <div className="w-full min-w-0 sm:flex-1">
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <Pie
@@ -402,7 +403,8 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
                   <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
-              <ul className="flex flex-wrap sm:flex-col gap-2 sm:gap-3 justify-center">
+              </div>
+              <ul className="flex flex-wrap sm:flex-col gap-2 sm:gap-3 justify-center shrink-0">
                 {analytics.complaintStatusPie.map((item) => (
                   <li key={item.name} className="flex items-center gap-2 text-sm font-amharic">
                     <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
@@ -425,7 +427,8 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
               {isAm ? 'ቀጠሮ የለም' : 'No appointments yet'}
             </p>
           ) : (
-            <div className="h-72 flex flex-col sm:flex-row items-center gap-4">
+            <div className="h-72 flex flex-col sm:flex-row items-center gap-4 min-w-0">
+              <div className="w-full min-w-0 sm:flex-1">
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <Pie
@@ -444,7 +447,8 @@ export default function AdminAnalyticsPanel({ complaints, appointments, loading,
                   <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
-              <ul className="flex flex-wrap sm:flex-col gap-2 sm:gap-3 justify-center">
+              </div>
+              <ul className="flex flex-wrap sm:flex-col gap-2 sm:gap-3 justify-center shrink-0">
                 {analytics.appointmentStatusPie.map((item) => (
                   <li key={item.name} className="flex items-center gap-2 text-sm font-amharic">
                     <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />

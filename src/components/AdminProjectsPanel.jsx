@@ -5,6 +5,9 @@ import { supabase } from '../lib/supabase'
 import { uploadProjectPhoto } from '../utils/storage'
 import { showToast } from './ToastContainer'
 import { FolderKanban, Plus, Pencil, Trash2, Upload, X } from 'lucide-react'
+import MultilingualFormHint from './admin/MultilingualFormHint'
+import MultilingualFieldLabel from './admin/MultilingualFieldLabel'
+import { isAmharicRequired, validateAmharicFields, trimOptional, MULTILINGUAL_LANGS } from '../utils/multilingualForm'
 
 const emptyForm = {
   title_am: '',
@@ -83,13 +86,18 @@ export default function AdminProjectsPanel() {
     e.preventDefault()
     setSaving(true)
     try {
+      validateAmharicFields(form, lang, {
+        title_am: { am: 'ርዕስ (አማርኛ)', en: 'Title (Amharic)' },
+        description_am: { am: 'መግለጫ (አማርኛ)', en: 'Description (Amharic)' },
+      })
+
       const payload = {
         title_am: form.title_am.trim(),
-        title_en: form.title_en.trim(),
-        title_om: form.title_om.trim() || null,
+        title_en: trimOptional(form.title_en),
+        title_om: trimOptional(form.title_om),
         description_am: form.description_am.trim(),
-        description_en: form.description_en.trim(),
-        description_om: form.description_om.trim() || null,
+        description_en: trimOptional(form.description_en),
+        description_om: trimOptional(form.description_om),
         sort_order: Number(form.sort_order) || 0,
         is_active: form.is_active,
       }
@@ -244,30 +252,32 @@ export default function AdminProjectsPanel() {
                 : (lang === 'am' ? 'አዲስ ፕሮጀክት' : 'New Project')}
             </h3>
 
+            <MultilingualFormHint lang={lang} variant="site" className="mb-4" />
+
             <div className="grid sm:grid-cols-3 gap-4 mb-4">
-              {['am', 'en', 'om'].map((l) => (
+              {MULTILINGUAL_LANGS.map((l) => (
                 <div key={`title-${l}`}>
-                  <label className="block text-xs font-medium text-mayor-navy/70 mb-1">Title ({l})</label>
+                  <MultilingualFieldLabel lang={lang} code={l} fieldName={lang === 'am' ? 'ርዕስ' : 'Title'} />
                   <input
                     value={form[`title_${l}`] || ''}
                     onChange={(e) => setForm({ ...form, [`title_${l}`]: e.target.value })}
                     className="w-full px-3 py-2 border border-mayor-gray-divider rounded-lg text-sm font-amharic"
-                    required={l !== 'om'}
+                    required={isAmharicRequired(l)}
                   />
                 </div>
               ))}
             </div>
 
             <div className="space-y-4 mb-4">
-              {['am', 'en', 'om'].map((l) => (
+              {MULTILINGUAL_LANGS.map((l) => (
                 <div key={`desc-${l}`}>
-                  <label className="block text-xs font-medium text-mayor-navy/70 mb-1">Description ({l})</label>
+                  <MultilingualFieldLabel lang={lang} code={l} fieldName={lang === 'am' ? 'መግለጫ' : 'Description'} />
                   <textarea
                     value={form[`description_${l}`] || ''}
                     onChange={(e) => setForm({ ...form, [`description_${l}`]: e.target.value })}
                     rows={3}
                     className="w-full px-3 py-2 border border-mayor-gray-divider rounded-lg text-sm font-amharic"
-                    required={l !== 'om'}
+                    required={isAmharicRequired(l)}
                   />
                 </div>
               ))}

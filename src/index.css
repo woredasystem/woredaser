@@ -13,7 +13,17 @@
   }
 
   body {
-    @apply font-english antialiased bg-white text-mayor-navy;
+    @apply font-english antialiased bg-white text-mayor-navy overflow-x-hidden;
+  }
+
+  html {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .font-amharic {
@@ -48,6 +58,37 @@
 
   .page-card-interactive {
     @apply page-card p-6 hover:shadow-md hover:border-mayor-royal-blue/25 transition-all duration-300;
+  }
+
+  .portal-table-scroll {
+    @apply overflow-auto -mx-3 sm:mx-0 px-3 sm:px-0;
+    max-height: min(32rem, calc(100dvh - 12rem));
+    scrollbar-gutter: stable;
+  }
+
+  .portal-table-scroll table thead th {
+    @apply sticky top-0 z-10;
+  }
+
+  .portal-table-scroll thead.bg-mayor-royal-blue th {
+    background-color: #004694;
+  }
+
+  .portal-table-scroll thead.portal-table-head-light th {
+    @apply bg-slate-50;
+  }
+
+  .portal-table-scroll thead.portal-table-head-white th {
+    @apply bg-white;
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 
   /* Brand sunburst — inspired by official seal / logo radial rays */

@@ -1,4 +1,4 @@
-import { FileText, Shield, Zap, ArrowRight, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { FileText, Shield, Zap, ArrowRight, ChevronRight, CheckCircle2, Calendar, Megaphone } from 'lucide-react'
 import { useLanguage } from '../hooks/useLanguage'
 import { getWoredaLabel, getHeroSubtitle } from '../config/site'
 import AnalyticsBar from '../components/AnalyticsBar'
@@ -32,6 +32,49 @@ export default function HomeView({ onNavigate }) {
     { icon: Shield, label: lang === 'am' ? 'አስተማማኝ' : lang === 'om' ? 'Amanamaa' : 'Secure Platform' },
     { icon: FileText, label: lang === 'am' ? 'ተደራሽ' : lang === 'om' ? 'Dhaqqabamaa' : 'Fully Accessible' },
   ]
+
+  const heroQuickActions = [
+    {
+      id: 'services',
+      icon: FileText,
+      label: lang === 'am' ? 'አገልግሎቶች' : lang === 'om' ? 'Tajaajiloota' : 'Services',
+      hint: lang === 'am'
+        ? 'ካታሎግ ይመልከቱ እና መስፈርቶች ያግኙ'
+        : lang === 'om'
+          ? 'Kaataalooogii fi haalawwan barbaadi'
+          : 'Browse catalog & requirements',
+    },
+    {
+      id: 'appointments',
+      icon: Calendar,
+      label: lang === 'am' ? 'ቀጠሮ' : lang === 'om' ? 'Beellama' : 'Appointments',
+      hint: lang === 'am'
+        ? 'ቀጠሮ ይዘዙ ወይም በኮድ ይከታተሉ'
+        : lang === 'om'
+          ? 'Beellama ajaji ykn koodii fayyadami'
+          : 'Book a slot or track by code',
+    },
+    {
+      id: 'complaints',
+      icon: Megaphone,
+      label: lang === 'am' ? 'ቅሬታ' : lang === 'om' ? 'Komii' : 'Complaints',
+      hint: lang === 'am'
+        ? 'ቅሬታ ያስገቡ ወይም ሁኔታ ይመልከቱ'
+        : lang === 'om'
+          ? 'Komii galchi ykn haala hordofi'
+          : 'Submit or follow a complaint',
+    },
+  ]
+
+  const heroCardTitle =
+    lang === 'am' ? 'የዜጎች አገልግሎት ማዕከል' : lang === 'om' ? 'Giddugala Tajaajila Hawaasaa' : 'Citizen Service Center'
+
+  const heroCardBody =
+    lang === 'am'
+      ? 'የወረዳውን አስተዳደር እና አገልግሎቶች በአንድ ቦታ የሚያገኙበት ዘመናዊ ዲጂታል ሥርዓት።'
+      : lang === 'om'
+        ? 'Sirna dijitaalaa ammayyaa bulchiinsa fi tajaajiloota naannoo bakka tokkotti argachuuf.'
+        : 'A modern digital system where you can access woreda administration and services in one place.'
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-english overflow-x-hidden">
@@ -100,25 +143,30 @@ export default function HomeView({ onNavigate }) {
                     <Shield className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-white leading-tight font-amharic">
-                    {lang === 'am' ? 'የዜጎች አገልግሎት ማዕከል' : 'Citizen Service Center'}
+                    {heroCardTitle}
                   </h3>
                   <p className="text-white/70 font-amharic leading-relaxed">
-                    {lang === 'am' 
-                      ? 'የወረዳውን አስተዳደር እና አገልግሎቶች በአንድ ቦታ የሚያገኙበት ዘመናዊ ዲጂታል ሥርዓት።' 
-                      : 'A modern digital system where you can access woreda administration and services in one place.'}
+                    {heroCardBody}
                   </p>
                 </div>
 
                 <div className="relative z-10 space-y-3 mt-8">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-14 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center px-4 gap-4 overflow-hidden group hover:bg-white/10 transition-colors cursor-pointer">
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                         <div className="w-2 h-2 rounded-full bg-brand-ray group-hover:scale-150 transition-transform duration-500"></div>
+                  {heroQuickActions.map(({ id, icon: Icon, label, hint }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => onNavigate(id)}
+                      className="w-full h-auto min-h-[3.5rem] rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center px-4 py-3 gap-3 overflow-hidden group hover:bg-white/10 hover:border-white/20 transition-all text-left"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0 group-hover:bg-brand-ray/30 transition-colors">
+                        <Icon className="w-4 h-4 text-white" />
                       </div>
-                      <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-brand-ray rounded-full w-2/3 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white font-amharic truncate">{label}</p>
+                        <p className="text-xs text-white/55 font-amharic truncate mt-0.5">{hint}</p>
                       </div>
-                    </div>
+                      <ChevronRight className="w-4 h-4 text-white/40 shrink-0 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                    </button>
                   ))}
                 </div>
              </div>
@@ -126,9 +174,10 @@ export default function HomeView({ onNavigate }) {
         </div>
       </section>
 
+      <AnalyticsBar />
+
       {/* Main Content Layout */}
       <div className="relative z-20">
-        <AnalyticsBar overlap />
         <ChiefExecutiveSpotlight />
         <MissionVisionSection variant="compact" />
         <OfficialsSection variant="homepage" />

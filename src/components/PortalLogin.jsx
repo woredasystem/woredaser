@@ -155,7 +155,7 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="min-h-screen min-h-[100dvh] bg-slate-50 flex items-center justify-center p-4 overflow-x-hidden">
         <div className="text-center">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-mayor-navy/5 border-2 border-mayor-navy/10 mb-4">
             <div className="h-6 w-6 border-2 border-mayor-royal-blue/30 border-t-mayor-royal-blue rounded-full animate-spin" />
@@ -169,8 +169,8 @@ export default function PortalLogin({ department, roleKey, onSuccess, onBack }) 
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <div className="flex-1 w-full max-w-md mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col justify-center">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-50 flex flex-col overflow-x-hidden w-full max-w-[100vw]">
+      <div className="flex-1 w-full max-w-md mx-auto px-4 sm:px-6 py-8 sm:py-14 pb-[max(2rem,env(safe-area-inset-bottom))] flex flex-col justify-center">
         <header className="text-center mb-8">
           {onBack && (
             <button

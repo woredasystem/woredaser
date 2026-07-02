@@ -4,6 +4,7 @@ import { useDepartments } from '../hooks/useDepartments'
 import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
 import { createPortalUser, updatePortalUser, resetPortalUserPassword } from '../utils/adminApi'
+import AdminFormTip from './admin/AdminFormTip'
 import { showToast } from './ToastContainer'
 import { UserPlus, KeyRound, Trash2, Pencil } from 'lucide-react'
 
@@ -170,6 +171,11 @@ export default function AdminPortalUsersPanel() {
           ? (lang === 'am' ? 'አዲስ የፖርታል አስተዳዳሪ' : 'New portal administrator')
           : (lang === 'am' ? 'አዲስ የፖርታል ባለሙያ' : 'New portal officer')}
       </p>
+      <AdminFormTip>
+        {lang === 'am'
+          ? 'ኢሜይል እና የይለፍ ቃል ለመግቢያ ይጠቀማሉ — ባለሙያው በሰጡት ኢሜይል ብቻ ወደ ፓንሉ መግባት ይችላል።'
+          : 'Officers sign in with the email and password you set here — use their real work email.'}
+      </AdminFormTip>
       <div className="grid md:grid-cols-2 gap-4">
         <input
           required
@@ -247,9 +253,9 @@ export default function AdminPortalUsersPanel() {
     }
 
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
+      <div className="portal-table-scroll">
+        <table className="w-full min-w-[520px] text-left">
+          <thead className="portal-table-head-white">
             <tr className="border-b">
               <th className="py-2 px-3">Email</th>
               <th className="py-2 px-3 font-amharic">{lang === 'am' ? 'ስም' : 'Name'}</th>
@@ -260,7 +266,7 @@ export default function AdminPortalUsersPanel() {
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="border-b border-gray-100">
-                <td className="py-3 px-3 text-sm">{user.email}</td>
+                <td className="py-3 px-3 text-sm break-all max-w-[10rem] sm:max-w-none">{user.email}</td>
                 <td className="py-3 px-3 font-amharic">{user.full_name}</td>
                 <td className="py-3 px-3 text-sm">{getDepartmentDisplayName(user.department, lang)}</td>
                 <td className="py-3 px-3 flex gap-1">
@@ -276,7 +282,7 @@ export default function AdminPortalUsersPanel() {
   }
 
   return (
-    <section className="gov-card p-6">
+    <section className="gov-card p-4 sm:p-6 overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-mayor-navy font-amharic flex items-center gap-2">
@@ -307,6 +313,11 @@ export default function AdminPortalUsersPanel() {
       {editingUser && (
         <form onSubmit={handleUpdateUser} className="mb-6 p-4 bg-blue-50 rounded-gov-lg space-y-4 border border-mayor-royal-blue/20">
           <p className="font-semibold text-mayor-navy">{lang === 'am' ? 'ተጠቃሚ አርትዕ' : 'Edit Officer'}</p>
+          <AdminFormTip>
+            {lang === 'am'
+              ? 'ኢሜይል ሲቀየር ባለሙያው በአዲሱ ኢሜይል መግባት ይኖርበታል።'
+              : 'If you change the email, the officer must sign in with the new address.'}
+          </AdminFormTip>
           <div className="grid md:grid-cols-2 gap-4">
             <input
               required

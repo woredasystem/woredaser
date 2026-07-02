@@ -123,8 +123,8 @@ export default function PortalAccess({ onSelectPortal }) {
     lang === 'am' ? 'አስተዳደር' : lang === 'om' ? 'Bulchiinsa' : 'Administration'
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <div className="min-h-screen min-h-[100dvh] bg-slate-50 flex flex-col overflow-x-hidden w-full max-w-[100vw]">
+      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-14 pb-[max(2rem,env(safe-area-inset-bottom))]">
         <header className="text-center mb-8 sm:mb-10">
           <button
             type="button"

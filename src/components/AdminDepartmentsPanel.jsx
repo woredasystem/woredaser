@@ -4,7 +4,9 @@ import { useDepartments } from '../hooks/useDepartments'
 import { supabase } from '../lib/supabase'
 import { showToast } from './ToastContainer'
 import { Building2, Plus, Pencil, Trash2 } from 'lucide-react'
-
+import MultilingualFormHint from './admin/MultilingualFormHint'
+import MultilingualFieldLabel from './admin/MultilingualFieldLabel'
+import { isAmharicRequired, validateAmharicFields, trimOptional } from '../utils/multilingualForm'
 const emptyForm = {
   role_key: '',
   department: '',
@@ -45,11 +47,15 @@ export default function AdminDepartmentsPanel() {
     e.preventDefault()
     setSaving(true)
     try {
+      validateAmharicFields(form, lang, {
+        department_am: { am: 'ስም (አማርኛ)', en: 'Name (Amharic)' },
+      })
+
       const payload = {
         role_key: form.role_key.trim(),
-        department: form.department.trim(),
+        department: trimOptional(form.department),
         department_am: form.department_am.trim(),
-        department_om: form.department_om.trim() || null,
+        department_om: trimOptional(form.department_om),
         is_admin: !!form.is_admin,
         sort_order: Number(form.sort_order) || 0,
       }
@@ -108,6 +114,8 @@ export default function AdminDepartmentsPanel() {
 
       {showForm && (
         <form onSubmit={handleSave} className="mb-6 p-4 bg-slate-50 rounded-gov-lg space-y-4">
+          <MultilingualFormHint lang={lang} variant="departments" />
+
           <div className="grid md:grid-cols-2 gap-4">
             <input
               required
@@ -124,28 +132,32 @@ export default function AdminDepartmentsPanel() {
               onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
               className="w-full px-4 py-2 border rounded-gov"
             />
-            <input
-              required
-              placeholder={lang === 'am' ? 'ስም (እንግ)' : 'Name (English)'}
-              value={form.department}
-              onChange={(e) => setForm({ ...form, department: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov"
-            />
-            <input
-              required
-              placeholder={lang === 'am' ? 'ስም (አማ)' : 'Name (Amharic)'}
-              value={form.department_am}
-              onChange={(e) => setForm({ ...form, department_am: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov"
-            />
-            <input
-              placeholder={lang === 'am' ? 'ስም (ኦሮ)' : 'Name (Oromo)'}
-              value={form.department_om}
-              onChange={(e) => setForm({ ...form, department_om: e.target.value })}
-              className="w-full px-4 py-2 border rounded-gov md:col-span-2"
-            />
-          </div>
-          <label className="flex items-center gap-2 text-sm">
+            <div>
+              <MultilingualFieldLabel lang={lang} code="am" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+              <input
+                required
+                value={form.department_am}
+                onChange={(e) => setForm({ ...form, department_am: e.target.value })}
+                className="w-full px-4 py-2 border rounded-gov font-amharic"
+              />
+            </div>
+            <div>
+              <MultilingualFieldLabel lang={lang} code="en" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+              <input
+                value={form.department}
+                onChange={(e) => setForm({ ...form, department: e.target.value })}
+                className="w-full px-4 py-2 border rounded-gov"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <MultilingualFieldLabel lang={lang} code="om" fieldName={lang === 'am' ? 'ስም' : 'Name'} />
+              <input
+                value={form.department_om}
+                onChange={(e) => setForm({ ...form, department_om: e.target.value })}
+                className="w-full px-4 py-2 border rounded-gov font-amharic"
+              />
+            </div>
+          </div>          <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={form.is_admin}
@@ -164,9 +176,9 @@ export default function AdminDepartmentsPanel() {
         </form>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="portal-table-scroll">
         <table className="w-full text-left">
-          <thead>
+          <thead className="portal-table-head-white">
             <tr className="border-b">
               <th className="py-2 px-3">role_key</th>
               <th className="py-2 px-3 font-amharic">{lang === 'am' ? 'ክፍል' : 'Department'}</th>

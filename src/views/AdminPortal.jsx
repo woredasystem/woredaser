@@ -4,8 +4,10 @@ import { supabase } from '../lib/supabase'
 import { getDepartmentDisplayName } from '../utils/routing'
 import { gregorianToEthiopian, ethiopianMonths, ethiopianMonthsEn } from '../utils/ethiopianCalendar'
 import { logout } from '../utils/auth'
-import { BarChart3, AlertTriangle, Users, Calendar, Edit, Download, FileText, FileSpreadsheet, TrendingUp, Search, Trash2, Building2, Settings, FolderKanban, BookOpen, BarChart2, KeyRound } from 'lucide-react'
+import { BarChart3, AlertTriangle, Users, Calendar, Edit, Download, FileText, FileSpreadsheet, TrendingUp, Search, Trash2, Building2, Settings, FolderKanban, BookOpen, BarChart2, KeyRound, Eye } from 'lucide-react'
 import AppointmentReschedule from '../components/AppointmentReschedule'
+import ExpandableText from '../components/admin/ExpandableText'
+import AdminRecordDetailModal from '../components/admin/AdminRecordDetailModal'
 import { generateComplaintPDF } from '../utils/pdfGenerator'
 import { exportComplaintsToPDF, exportComplaintsToCSV, exportAppointmentsToPDF, exportAppointmentsToCSV } from '../utils/exportUtils'
 import AdminLeadershipPanel from '../components/AdminLeadershipPanel'
@@ -26,6 +28,8 @@ export default function AdminPortal({ onBack }) {
   const [loading, setLoading] = useState(true)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [showRescheduleModal, setShowRescheduleModal] = useState(false)
+  const [appointmentDetail, setAppointmentDetail] = useState(null)
+  const [complaintDetail, setComplaintDetail] = useState(null)
   const [activeTab, setActiveTab] = useState('analytics')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -230,6 +234,49 @@ export default function AdminPortal({ onBack }) {
       'In Progress': lang === 'am' ? 'በሂደት ላይ' : 'In Progress'
     }
     return statusMap[status] || status
+  }
+
+  const getAppointmentDetailFields = (appointment) => [
+    { label: lang === 'am' ? 'ኮድ' : 'Code', value: appointment.unique_code },
+    { label: lang === 'am' ? 'ስም' : 'Name', value: appointment.citizen_name },
+    { label: lang === 'am' ? 'ስልክ' : 'Phone', value: appointment.citizen_phone },
+    { label: lang === 'am' ? 'የአገልግሎት አይነት' : 'Service', value: appointment.service_type },
+    { label: lang === 'am' ? 'የቀጠሮ ቀን' : 'Appointment date', value: formatDateTime(appointment.appointment_date) },
+    {
+      label: lang === 'am' ? 'የስራ ክፍል' : 'Department',
+      value: getDepartmentDisplayName(appointment.assigned_department, lang),
+    },
+    { label: lang === 'am' ? 'ሁኔታ' : 'Status', value: getStatusText(appointment.status) },
+  ]
+
+  const getComplaintDetailFields = (complaint) => {
+    const fields = [
+      { label: lang === 'am' ? 'ቲኬት' : 'Ticket', value: complaint.ticket_number },
+      { label: lang === 'am' ? 'ስም' : 'Name', value: complaint.complainant_name },
+      { label: lang === 'am' ? 'ስልክ' : 'Phone', value: complaint.complainant_phone },
+      {
+        label: lang === 'am' ? 'የስራ ክፍል' : 'Department',
+        value: getDepartmentDisplayName(complaint.assigned_department || complaint.department, lang),
+      },
+      { label: lang === 'am' ? 'የቅሬታ ተቀባይ' : 'Target official', value: complaint.target_official },
+      { label: lang === 'am' ? 'ሁኔታ' : 'Status', value: getStatusText(complaint.status) },
+      { label: lang === 'am' ? 'ደረጃ' : 'Level', value: String(complaint.escalation_level || 1) },
+      { label: lang === 'am' ? 'ቀን' : 'Date', value: formatDate(complaint.created_at) },
+      { label: lang === 'am' ? 'ዝርዝር' : 'Details', value: complaint.details },
+    ]
+    if (complaint.resolution_note) {
+      fields.push({
+        label: lang === 'am' ? 'የመፍትሄ ማስታወሻ' : 'Resolution note',
+        value: complaint.resolution_note,
+      })
+    }
+    if (complaint.summary_response) {
+      fields.push({
+        label: lang === 'am' ? 'መልስ' : 'Response',
+        value: complaint.summary_response,
+      })
+    }
+    return fields
   }
 
   // Handle complaint selection
@@ -440,7 +487,7 @@ export default function AdminPortal({ onBack }) {
     content: { title: lang === 'am' ? 'ይዘት' : 'Site Content', subtitle: lang === 'am' ? 'ተልዕኮ፣ ራዕይ እና እሴቶች' : 'Mission, vision & values' },
     siteStats: { title: lang === 'am' ? 'ስታትስቲክስ' : 'Homepage Stats', subtitle: lang === 'am' ? 'ህዝብ፣ ብሎኮች፣ አገልግሎቶች' : 'Population, blocks, services' },
     projects: { title: lang === 'am' ? 'ፕሮጀክቶች' : 'Projects', subtitle: lang === 'am' ? 'የመነሻ ገጽ ፕሮጀክቶች' : 'Homepage projects' },
-    leadership: { title: lang === 'am' ? 'አመራሮች' : 'Leadership', subtitle: lang === 'am' ? 'በመነሻ ገጽ የሚታዩ አመራሮች' : 'Leaders shown on the public homepage' },
+    leadership: { title: lang === 'am' ? 'አመራሮች' : 'Leadership', subtitle: lang === 'am' ? 'መልእክት፣ ፎቶ እና መነሻ ገጽ' : 'Messages, photos & homepage' },
     portalUsers: { title: lang === 'am' ? 'የፖርታል ባለሙያ' : 'Portal Officers', subtitle: lang === 'am' ? 'ወደ ፓንል የሚገቡ ሰራተኞች' : 'Staff login accounts for department portals' },
     departments: { title: lang === 'am' ? 'ክፍሎች' : 'Departments', subtitle: lang === 'am' ? 'የስራ ክፍሎች' : 'Department catalog' },
     services: { title: lang === 'am' ? 'አገልግሎቶች' : 'Services', subtitle: lang === 'am' ? 'የአገልግሎት ካታሎግ' : 'Service catalog' },
@@ -486,8 +533,8 @@ export default function AdminPortal({ onBack }) {
             <div className="space-y-4">
               {/* Filters and Export */}
               <div className="gov-card p-4">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="flex-1 relative">
+                <div className="flex flex-col gap-4">
+                  <div className="flex-1 relative w-full min-w-0">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mayor-navy/40 w-5 h-5" />
                     <input
                       type="text"
@@ -497,10 +544,11 @@ export default function AdminPortal({ onBack }) {
                       className="w-full pl-10 pr-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                     />
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
+                    className="w-full px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                   >
                     <option value="all">{lang === 'am' ? 'ሁሉም ሁኔታዎች' : 'All Statuses'}</option>
                     <option value="Pending">{lang === 'am' ? 'በመጠባበቅ ላይ' : 'Pending'}</option>
@@ -511,14 +559,15 @@ export default function AdminPortal({ onBack }) {
                   <select
                     value={departmentFilter}
                     onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
+                    className="w-full px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                   >
                     <option value="all">{lang === 'am' ? 'ሁሉም ክፍሎች' : 'All Departments'}</option>
                     {departments.map(dept => (
                       <option key={dept} value={dept}>{getDepartmentDisplayName(dept, lang)}</option>
                     ))}
                   </select>
-                  <div className="flex gap-2">
+                  </div>
+                  <div className="flex flex-wrap gap-2 w-full">
                     {selectedComplaints.size > 0 && (
                       <button
                         onClick={() => confirmDelete('complaints', false)}
@@ -553,10 +602,72 @@ export default function AdminPortal({ onBack }) {
                 </div>
               </div>
 
-              {/* Complaints Table */}
-              <div className="gov-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+              {/* Complaints — mobile cards */}
+              <div className="md:hidden space-y-3">
+                {filteredComplaints.length === 0 ? (
+                  <div className="gov-card p-8 text-center text-mayor-navy/60 font-amharic">
+                    {lang === 'am' ? 'ቅሬታ አልተገኘም' : 'No complaints found'}
+                  </div>
+                ) : (
+                  filteredComplaints.map((complaint) => (
+                    <article
+                      key={complaint.id}
+                      className="gov-card p-4 border-l-4 border-l-mayor-royal-blue"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <label className="flex items-center gap-2 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={selectedComplaints.has(complaint.id)}
+                            onChange={() => handleComplaintSelect(complaint.id)}
+                            className="w-4 h-4 cursor-pointer shrink-0"
+                          />
+                          <span className="font-mono text-xs text-mayor-navy/70 truncate">{complaint.ticket_number}</span>
+                        </label>
+                        <span className={`px-2 py-1 rounded-gov text-white text-xs font-amharic shrink-0 ${getStatusColor(complaint.status)}`}>
+                          {getStatusText(complaint.status)}
+                        </span>
+                      </div>
+                      <p className="font-amharic font-semibold text-mayor-navy mb-1">{complaint.complainant_name}</p>
+                      <p className="text-sm text-mayor-navy/70 mb-2">{complaint.complainant_phone}</p>
+                      <p className="text-xs text-mayor-navy/55 font-amharic mb-2">
+                        {getDepartmentDisplayName(complaint.assigned_department || complaint.department, lang)}
+                        {' · '}
+                        {formatDate(complaint.created_at)}
+                      </p>
+                      <ExpandableText
+                        text={complaint.details}
+                        lang={lang}
+                        onExpand={() => setComplaintDetail(complaint)}
+                        className="mb-3"
+                      />
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-mayor-gray-divider">
+                        <button
+                          type="button"
+                          onClick={() => setComplaintDetail(complaint)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-mayor-royal-blue font-amharic font-semibold hover:bg-mayor-royal-blue/5 rounded-lg"
+                        >
+                          <Eye className="w-4 h-4" />
+                          {lang === 'am' ? 'ዝርዝር' : 'Details'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => generateComplaintPDF(complaint, lang)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-mayor-navy font-amharic rounded-lg border border-mayor-gray-divider hover:bg-slate-50"
+                        >
+                          <Download className="w-4 h-4" />
+                          PDF
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              {/* Complaints — desktop table */}
+              <div className="gov-card overflow-hidden hidden md:block">
+                <div className="portal-table-scroll">
+                  <table className="w-full min-w-[640px] table-fixed">
                     <thead className="bg-mayor-royal-blue text-white">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-12">
@@ -567,14 +678,15 @@ export default function AdminPortal({ onBack }) {
                             className="w-4 h-4 cursor-pointer"
                           />
                         </th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ቲኬት' : 'Ticket'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ስም' : 'Name'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ስልክ' : 'Phone'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'የስራ ክፍል' : 'Department'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ሁኔታ' : 'Status'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ደረጃ' : 'Level'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ቀን' : 'Date'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ድርጊት' : 'Action'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ቲኬት' : 'Ticket'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ስም' : 'Name'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ስልክ' : 'Phone'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-32">{lang === 'am' ? 'የስራ ክፍል' : 'Department'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-24">{lang === 'am' ? 'ሁኔታ' : 'Status'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-14">{lang === 'am' ? 'ደረጃ' : 'Level'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ቀን' : 'Date'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-40">{lang === 'am' ? 'ዝርዝር' : 'Details'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-20">{lang === 'am' ? 'ድርጊት' : 'Action'}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -588,27 +700,50 @@ export default function AdminPortal({ onBack }) {
                               className="w-4 h-4 cursor-pointer"
                             />
                           </td>
-                          <td className="px-4 py-3 font-mono text-sm">{complaint.ticket_number}</td>
-                          <td className="px-4 py-3 font-amharic">{complaint.complainant_name}</td>
-                          <td className="px-4 py-3">{complaint.complainant_phone}</td>
-                          <td className="px-4 py-3 font-amharic text-sm">
-                            {getDepartmentDisplayName(complaint.assigned_department || complaint.department, lang)}
+                          <td className="px-4 py-3 font-mono text-sm truncate">{complaint.ticket_number}</td>
+                          <td className="px-4 py-3 font-amharic text-sm truncate">{complaint.complainant_name}</td>
+                          <td className="px-4 py-3 text-sm truncate">{complaint.complainant_phone}</td>
+                          <td className="px-4 py-3 font-amharic text-sm align-top">
+                            <ExpandableText
+                              text={getDepartmentDisplayName(complaint.assigned_department || complaint.department, lang)}
+                              lang={lang}
+                              onExpand={() => setComplaintDetail(complaint)}
+                              lineClamp={1}
+                            />
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded-gov text-white text-xs font-amharic ${getStatusColor(complaint.status)}`}>
+                            <span className={`px-2 py-1 rounded-gov text-white text-xs font-amharic whitespace-nowrap ${getStatusColor(complaint.status)}`}>
                               {getStatusText(complaint.status)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">{complaint.escalation_level || 1}</td>
-                          <td className="px-4 py-3 font-amharic text-sm">{formatDate(complaint.created_at)}</td>
+                          <td className="px-4 py-3 text-center text-sm">{complaint.escalation_level || 1}</td>
+                          <td className="px-4 py-3 font-amharic text-sm whitespace-nowrap">{formatDate(complaint.created_at)}</td>
+                          <td className="px-4 py-3 align-top">
+                            <ExpandableText
+                              text={complaint.details}
+                              lang={lang}
+                              onExpand={() => setComplaintDetail(complaint)}
+                            />
+                          </td>
                           <td className="px-4 py-3">
-                            <button
-                              onClick={() => generateComplaintPDF(complaint, lang)}
-                              className="p-1 text-mayor-royal-blue hover:text-mayor-highlight-blue"
-                              title={lang === 'am' ? 'PDF ያውርዱ' : 'Download PDF'}
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => setComplaintDetail(complaint)}
+                                className="p-1 text-mayor-navy/50 hover:text-mayor-royal-blue"
+                                title={lang === 'am' ? 'ዝርዝር' : 'View details'}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => generateComplaintPDF(complaint, lang)}
+                                className="p-1 text-mayor-royal-blue hover:text-mayor-highlight-blue"
+                                title={lang === 'am' ? 'PDF ያውርዱ' : 'Download PDF'}
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -629,8 +764,8 @@ export default function AdminPortal({ onBack }) {
             <div className="space-y-4">
               {/* Filters and Export */}
               <div className="gov-card p-4">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="flex-1 relative">
+                <div className="flex flex-col gap-4">
+                  <div className="flex-1 relative w-full min-w-0">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mayor-navy/40 w-5 h-5" />
                     <input
                       type="text"
@@ -640,10 +775,11 @@ export default function AdminPortal({ onBack }) {
                       className="w-full pl-10 pr-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                     />
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
+                    className="w-full px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                   >
                     <option value="all">{lang === 'am' ? 'ሁሉም ሁኔታዎች' : 'All Statuses'}</option>
                     <option value="Confirmed">{lang === 'am' ? 'በሂደት ላይ' : 'Confirmed'}</option>
@@ -654,14 +790,15 @@ export default function AdminPortal({ onBack }) {
                   <select
                     value={departmentFilter}
                     onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
+                    className="w-full px-4 py-2 rounded-gov border border-mayor-gray-divider focus:outline-none focus:ring-2 focus:ring-mayor-royal-blue font-amharic"
                   >
                     <option value="all">{lang === 'am' ? 'ሁሉም ክፍሎች' : 'All Departments'}</option>
                     {departments.map(dept => (
                       <option key={dept} value={dept}>{getDepartmentDisplayName(dept, lang)}</option>
                     ))}
                   </select>
-                  <div className="flex gap-2">
+                  </div>
+                  <div className="flex flex-wrap gap-2 w-full">
                     {selectedAppointments.size > 0 && (
                       <button
                         onClick={() => confirmDelete('appointments', false)}
@@ -696,10 +833,77 @@ export default function AdminPortal({ onBack }) {
                 </div>
               </div>
 
-              {/* Appointments Table */}
-              <div className="gov-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+              {/* Appointments — mobile cards */}
+              <div className="md:hidden space-y-3">
+                {filteredAppointments.length === 0 ? (
+                  <div className="gov-card p-8 text-center text-mayor-navy/60 font-amharic">
+                    {lang === 'am' ? 'ቀጠሮ አልተገኘም' : 'No appointments found'}
+                  </div>
+                ) : (
+                  filteredAppointments.map((appointment) => (
+                    <article
+                      key={appointment.id}
+                      className="gov-card p-4 border-l-4 border-l-mayor-highlight-blue"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <label className="flex items-center gap-2 shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={selectedAppointments.has(appointment.id)}
+                            onChange={() => handleAppointmentSelect(appointment.id)}
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                          <span className="font-mono text-xs text-mayor-navy/70">{appointment.unique_code}</span>
+                        </label>
+                        <span className={`px-2 py-1 rounded-gov text-white text-xs font-amharic shrink-0 ${getStatusColor(appointment.status)}`}>
+                          {getStatusText(appointment.status)}
+                        </span>
+                      </div>
+                      <p className="font-amharic font-semibold text-mayor-navy mb-1">{appointment.citizen_name}</p>
+                      <p className="text-sm text-mayor-navy/70 mb-2">{appointment.citizen_phone}</p>
+                      <ExpandableText
+                        text={appointment.service_type}
+                        lang={lang}
+                        onExpand={() => setAppointmentDetail(appointment)}
+                        className="mb-2"
+                      />
+                      <p className="text-xs text-mayor-navy/60 font-amharic mb-3">
+                        {formatDateTime(appointment.appointment_date)}
+                        {' · '}
+                        {getDepartmentDisplayName(appointment.assigned_department, lang)}
+                      </p>
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-mayor-gray-divider">
+                        <button
+                          type="button"
+                          onClick={() => setAppointmentDetail(appointment)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-mayor-royal-blue font-amharic font-semibold hover:bg-mayor-royal-blue/5 rounded-lg"
+                        >
+                          <Eye className="w-4 h-4" />
+                          {lang === 'am' ? 'ዝርዝር' : 'Details'}
+                        </button>
+                        {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedAppointment(appointment)
+                              setShowRescheduleModal(true)
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-mayor-navy font-amharic rounded-lg border border-mayor-gray-divider hover:bg-slate-50"
+                          >
+                            <Edit className="w-4 h-4" />
+                            {lang === 'am' ? 'እንደገና ይዘጋጁ' : 'Reschedule'}
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+
+              {/* Appointments — desktop table */}
+              <div className="gov-card overflow-hidden hidden md:block">
+                <div className="portal-table-scroll">
+                  <table className="w-full min-w-[640px] table-fixed">
                     <thead className="bg-mayor-royal-blue text-white">
                       <tr>
                         <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-12">
@@ -710,14 +914,14 @@ export default function AdminPortal({ onBack }) {
                             className="w-4 h-4 cursor-pointer"
                           />
                         </th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ኮድ' : 'Code'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ስም' : 'Name'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ስልክ' : 'Phone'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'የአገልግሎት አይነት' : 'Service'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'የቀጠሮ ቀን' : 'Date'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'የስራ ክፍል' : 'Department'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ሁኔታ' : 'Status'}</th>
-                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm">{lang === 'am' ? 'ድርጊት' : 'Action'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-24">{lang === 'am' ? 'ኮድ' : 'Code'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ስም' : 'Name'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ስልክ' : 'Phone'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-48">{lang === 'am' ? 'የአገልግሎት አይነት' : 'Service'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-36">{lang === 'am' ? 'የቀጠሮ ቀን' : 'Date'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-32">{lang === 'am' ? 'የስራ ክፍል' : 'Department'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-28">{lang === 'am' ? 'ሁኔታ' : 'Status'}</th>
+                        <th className="px-4 py-3 text-left font-semibold font-amharic text-sm w-20">{lang === 'am' ? 'ድርጊት' : 'Action'}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -731,20 +935,40 @@ export default function AdminPortal({ onBack }) {
                               className="w-4 h-4 cursor-pointer"
                             />
                           </td>
-                          <td className="px-4 py-3 font-mono text-sm">{appointment.unique_code}</td>
-                          <td className="px-4 py-3 font-amharic">{appointment.citizen_name}</td>
-                          <td className="px-4 py-3">{appointment.citizen_phone}</td>
-                          <td className="px-4 py-3 font-amharic text-sm">{appointment.service_type}</td>
-                          <td className="px-4 py-3 font-amharic text-sm">{formatDateTime(appointment.appointment_date)}</td>
-                          <td className="px-4 py-3 font-amharic text-sm">
-                            {getDepartmentDisplayName(appointment.assigned_department, lang)}
+                          <td className="px-4 py-3 font-mono text-sm truncate">{appointment.unique_code}</td>
+                          <td className="px-4 py-3 font-amharic text-sm truncate">{appointment.citizen_name}</td>
+                          <td className="px-4 py-3 text-sm truncate">{appointment.citizen_phone}</td>
+                          <td className="px-4 py-3 align-top">
+                            <ExpandableText
+                              text={appointment.service_type}
+                              lang={lang}
+                              onExpand={() => setAppointmentDetail(appointment)}
+                            />
+                          </td>
+                          <td className="px-4 py-3 font-amharic text-sm whitespace-nowrap">{formatDateTime(appointment.appointment_date)}</td>
+                          <td className="px-4 py-3 font-amharic text-sm align-top">
+                            <ExpandableText
+                              text={getDepartmentDisplayName(appointment.assigned_department, lang)}
+                              lang={lang}
+                              onExpand={() => setAppointmentDetail(appointment)}
+                              lineClamp={1}
+                            />
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded-gov text-white text-xs font-amharic ${getStatusColor(appointment.status)}`}>
+                            <span className={`px-2 py-1 rounded-gov text-white text-xs font-amharic whitespace-nowrap ${getStatusColor(appointment.status)}`}>
                               {getStatusText(appointment.status)}
                             </span>
                           </td>
                           <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => setAppointmentDetail(appointment)}
+                                className="p-1 text-mayor-navy/50 hover:text-mayor-royal-blue"
+                                title={lang === 'am' ? 'ዝርዝር' : 'View details'}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
                             {(appointment.status === 'Confirmed' || appointment.status === 'Rescheduled') && (
                               <button
                                 onClick={() => {
@@ -757,6 +981,7 @@ export default function AdminPortal({ onBack }) {
                                 <Edit className="w-4 h-4" />
                               </button>
                             )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -770,6 +995,24 @@ export default function AdminPortal({ onBack }) {
                 </div>
               </div>
             </div>
+          )}
+
+          {complaintDetail && (
+            <AdminRecordDetailModal
+              title={lang === 'am' ? 'የቅሬታ ዝርዝር' : 'Complaint details'}
+              fields={getComplaintDetailFields(complaintDetail)}
+              lang={lang}
+              onClose={() => setComplaintDetail(null)}
+            />
+          )}
+
+          {appointmentDetail && (
+            <AdminRecordDetailModal
+              title={lang === 'am' ? 'የቀጠሮ ዝርዝር' : 'Appointment details'}
+              fields={getAppointmentDetailFields(appointmentDetail)}
+              lang={lang}
+              onClose={() => setAppointmentDetail(null)}
+            />
           )}
 
           {/* Reschedule Modal */}
@@ -790,8 +1033,8 @@ export default function AdminPortal({ onBack }) {
 
           {/* Delete Confirmation Modal */}
           {showDeleteConfirm.show && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-gov-lg p-6 max-w-md w-full mx-4">
+            <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+              <div className="bg-white rounded-t-2xl sm:rounded-gov-lg p-6 max-w-md w-full mx-0 sm:mx-4 max-h-[90vh] overflow-y-auto">
                 <h3 className="text-xl font-bold text-mayor-navy mb-4 font-amharic">
                   {lang === 'am' ? 'ማረጋገጥ' : 'Confirm Delete'}
                 </h3>
