@@ -31,11 +31,13 @@ const STATUS_LABELS: Record<string, { am: string; om: string; en: string }> = {
   "In Progress": { am: "በሂደት ላይ", om: "Adeemsa irratti", en: "In Progress" },
   Resolved: { am: "ተፈትቷል", om: "Furmaata argateera", en: "Resolved" },
   Escalated: { am: "ወደ ላይ ተላልፏል", om: "Gara olaanaatti ergameera", en: "Escalated" },
-  Confirmed: { am: "በሂደት ላይ", om: "Mirkanaa'eera", en: "Confirmed" },
+  Confirmed: { am: "ተፈርሟል", om: "Mirkanaa'eera", en: "Confirmed" },
   Rescheduled: { am: "ቀኑ ተቀይሯል", om: "Irra deebi'ii qindeeffameera", en: "Rescheduled" },
-  Completed: { am: "ተጠናቋል", om: "Xumurameera", en: "Completed" },
-  Missed: { am: "ተቀርቷል", om: "Darbameera", en: "Missed" },
+  Completed: { am: "ተቀባይነት አግኝቷል", om: "Fudhatama argateera", en: "Approved" },
+  Missed: { am: "ተቀባይነት አላገኘም", om: "Fudhatama hin arganne", en: "Not approved" },
 };
+
+type Trilingual = { am: string; om: string; en: string };
 
 function citizenName(record: Record<string, unknown>, table: string): string {
   const raw = table === "complaints"
@@ -45,9 +47,164 @@ function citizenName(record: Record<string, unknown>, table: string): string {
   return name || "ደንበኛ";
 }
 
-function statusLabels(status: string) {
+function statusLabels(status: string): Trilingual {
   return STATUS_LABELS[status] ?? { am: status, om: status, en: status };
 }
+
+/** Distinct body text per complaint status (and outcome when resolved). */
+function complaintStatusBody(record: Record<string, unknown>): Trilingual {
+  const status = String(record.status || "");
+  const outcome = String(record.summary_response || "");
+
+  if (status === "Pending") {
+    return {
+      am: "ቅሬታዎ ተቀብሏል እና በመጠባበቅ ላይ ነው። በቅርቡ ይመለሳሉ።",
+      om: "Komii keessan fudhatameera akkasumas eegaa jira. Yeroo gabaabaa keessatti deebi'u.",
+      en: "Your complaint has been received and is pending review.",
+    };
+  }
+
+  if (status === "In Progress") {
+    return {
+      am: "ቅሬታዎ አሁን በሂደት ላይ ነው። ባለሙያዎች ጉዳዩን እየተመለከቱት ነው።",
+      om: "Komii keessan amma adeemsa irratti jira. Ogeeyyiin dhimma kana ilaalaa jiru.",
+      en: "Your complaint is now in progress and being reviewed by our team.",
+    };
+  }
+
+  if (status === "Resolved") {
+    if (outcome === "correct") {
+      return {
+        am: "ቅሬታዎ ትክክል ነው ተብሎ ተገምጥሟል። ጉዳዩ ተፈትቷል።",
+        om: "Komii keessan sirrii ta'uu isaa mirkanaa'ee furmaata argateera.",
+        en: "Your complaint was upheld as valid. The case is now resolved.",
+      };
+    }
+    if (outcome === "incorrect") {
+      return {
+        am: "ቅሬታዎ ትክክል አይደለም ተብሎ ተገምጥሟል። ጉዳዩ ተፈትቷል።",
+        om: "Komii keessan sirrii miti jedhamee furmaata argateera.",
+        en: "Your complaint was reviewed and not upheld. The case is now closed.",
+      };
+    }
+    return {
+      am: "ቅሬታዎ ተፈትቷል። ዝርዝር ለማየት ከታች ያለውን ሊንክ ይጠቀሙ።",
+      om: "Komii keessan furmaata argateera. Bal'inaaf liinkii armaan gadii fayyadamaa.",
+      en: "Your complaint has been resolved. Use the link below for details.",
+    };
+  }
+
+  if (status === "Escalated") {
+    return {
+      am: "ቅሬታዎ ወደ ከፍተኛ አመራር ተላልፏል። በቅርቡ ተጨማሪ መልስ ይደርስዎታል።",
+      om: "Komii keessan gara hogganoota olaanaatti ergameera. Deebii dabalataa yeroo gabaabaa keessatti ni argattu.",
+      en: "Your complaint has been escalated to senior leadership for further action.",
+    };
+  }
+
+  const label = statusLabels(status);
+  return {
+    am: `የቅሬታዎ ሁኔታ ተዘምኗል። አሁን፦ ${label.am}`,
+    om: `Haalli komii keessanii jijjiirameera. Amma: ${label.om}`,
+    en: `Your complaint status has changed. Now: ${label.en}`,
+  };
+}
+
+/** Distinct body text per appointment status. */
+function appointmentStatusBody(status: string): Trilingual {
+  if (status === "Confirmed") {
+    return {
+      am: "ቀጠሮዎ ተፈርሟል። እባክዎ በተጠቀሰው ቀን እና ሰዓት ይገኙ።",
+      om: "Beellamni keessan mirkanaa'eera. Maaloo guyyaa fi sa'aatii kenname irratti argadhaa.",
+      en: "Your appointment is confirmed. Please arrive on the scheduled date and time.",
+    };
+  }
+
+  if (status === "Rescheduled") {
+    return {
+      am: "ቀጠሮዎ ቀኑ ተቀይሯል። አዲሱን ቀን እና ሰዓት በፖርታል ይመልከቱ።",
+      om: "Guyyaan beellama keessanii jijjiirameera. Guyyaa fi sa'aatii haaraa paaneelii irratti ilaalaa.",
+      en: "Your appointment has been rescheduled. Please check the portal for the new date and time.",
+    };
+  }
+
+  if (status === "Completed") {
+    return {
+      am: "ቀጠሮዎ ተቀባይነት አግኝቷል። አገልግሎቱ ተሳክቷል።",
+      om: "Beellamni keessan fudhatama argateera. Tajaajilli milkaa'inaan xumurameera.",
+      en: "Your appointment was approved and completed successfully.",
+    };
+  }
+
+  if (status === "Missed") {
+    return {
+      am: "ቀጠሮዎ ተቀባይነት አላገኘም። ለተጨማሪ መረጃ ወይም አዲስ ቀጠሮ ፖርታሉን ይጠቀሙ።",
+      om: "Beellamni keessan fudhatama hin arganne. Odeeffannoo dabalataa yookaan beellama haaraa paaneelii fayyadamaa.",
+      en: "Your appointment was not approved. Contact us or book again through the portal.",
+    };
+  }
+
+  const label = statusLabels(status);
+  return {
+    am: `የቀጠሮዎ ሁኔታ ተዘምኗል። አሁን፦ ${label.am}`,
+    om: `Haalli beellama keessanii jijjiirameera. Amma: ${label.om}`,
+    en: `Your appointment status has changed. Now: ${label.en}`,
+  };
+}
+
+function formatTrilingualSms(
+  name: string,
+  body: Trilingual,
+  code: string,
+  trackUrl: string,
+  trackHint: Trilingual,
+): string {
+  return [
+    `ክቡር ${name}፣`,
+    "",
+    body.am,
+    "",
+    "የመከታተያ ኮድዎ፦",
+    code,
+    "",
+    trackHint.am,
+    trackUrl,
+    "",
+    "---",
+    `Kabajamaa ${name},`,
+    "",
+    body.om,
+    "",
+    "Koodii hordofaa keessanii:",
+    code,
+    "",
+    trackHint.om,
+    trackUrl,
+    "",
+    "---",
+    `Dear ${name},`,
+    "",
+    body.en,
+    "",
+    "Your tracking code:",
+    code,
+    "",
+    trackHint.en,
+    trackUrl,
+  ].join("\n");
+}
+
+const COMPLAINT_TRACK_HINT: Trilingual = {
+  am: "ሁኔታውን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
+  om: "Haala isaa ilaaluuf as tuqaa:",
+  en: "To follow your status, visit:",
+};
+
+const APPOINTMENT_TRACK_HINT: Trilingual = {
+  am: "ቀጠሮዎን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
+  om: "Beellama keessan ilaaluuf as tuqaa:",
+  en: "To follow your appointment, visit:",
+};
 
 /** Trilingual formal SMS (Style 3) — Amharic, Oromiffa, English */
 function buildMessage(
@@ -100,40 +257,13 @@ function buildMessage(
   }
 
   if (event === "complaint_status_changed") {
-    const s = statusLabels(String(record.status || ""));
-    return [
-      `ክቡር ${name}፣`,
-      "",
-      `የቅሬታዎ ሁኔታ ተዘምኗል። አሁን፦ ${s.am}`,
-      "",
-      "የመከታተያ ኮድዎ፦",
+    return formatTrilingualSms(
+      name,
+      complaintStatusBody(record),
       code,
-      "",
-      "ሁኔታውን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
       trackUrl,
-      "",
-      "---",
-      `Kabajamaa ${name},`,
-      "",
-      `Haalli komii keessanii jijjiirameera. Amma: ${s.om}`,
-      "",
-      "Koodii hordofaa keessanii:",
-      code,
-      "",
-      "Haala isaa ilaaluuf as tuqaa:",
-      trackUrl,
-      "",
-      "---",
-      `Dear ${name},`,
-      "",
-      `Your complaint status has been updated. Now: ${s.en}`,
-      "",
-      "Your tracking code:",
-      code,
-      "",
-      "To follow your status, visit:",
-      trackUrl,
-    ].join("\n");
+      COMPLAINT_TRACK_HINT,
+    );
   }
 
   if (event === "appointment_created") {
@@ -173,75 +303,22 @@ function buildMessage(
   }
 
   if (event === "appointment_rescheduled") {
-    return [
-      `ክቡር ${name}፣`,
-      "",
-      `ቀጠሮዎ ቀኑ ተቀይሯል። እባክዎ አዲሱን ቀን በ${PORTAL.am} ይመልከቱ።`,
-      "",
-      "የመከታተያ ኮድዎ፦",
+    return formatTrilingualSms(
+      name,
+      appointmentStatusBody("Rescheduled"),
       code,
-      "",
-      "ዝርዝር ለመመልከት ይሄንን ድረ-ገጽ ይጎብኙ፦",
       trackUrl,
-      "",
-      "---",
-      `Kabajamaa ${name},`,
-      "",
-      `Guyyaan beellama keessanii jijjiirameera. ${PORTAL.om} irratti ilaalaa.`,
-      "",
-      "Koodii hordofaa keessanii:",
-      code,
-      "",
-      "Bal'inaaf as tuqaa:",
-      trackUrl,
-      "",
-      "---",
-      `Dear ${name},`,
-      "",
-      `Your appointment date has changed. Please check the ${PORTAL.en}.`,
-      "",
-      "Your tracking code:",
-      code,
-      "",
-      "For details, visit:",
-      trackUrl,
-    ].join("\n");
+      APPOINTMENT_TRACK_HINT,
+    );
   }
 
-  const s = statusLabels(String(record.status || ""));
-  return [
-    `ክቡር ${name}፣`,
-    "",
-    `የቀጠሮዎ ሁኔታ ተዘምኗል። አሁን፦ ${s.am}`,
-    "",
-    "የመከታተያ ኮድዎ፦",
+  return formatTrilingualSms(
+    name,
+    appointmentStatusBody(String(record.status || "")),
     code,
-    "",
-    "ቀጠሮዎን ለመከታተል ይሄንን ድረ-ገጽ ይጎብኙ፦",
     trackUrl,
-    "",
-    "---",
-    `Kabajamaa ${name},`,
-    "",
-    `Haalli beellama keessanii jijjiirameera. Amma: ${s.om}`,
-    "",
-    "Koodii hordofaa keessanii:",
-    code,
-    "",
-    "Beellama keessan ilaaluuf as tuqaa:",
-    trackUrl,
-    "",
-    "---",
-    `Dear ${name},`,
-    "",
-    `Your appointment status has been updated. Now: ${s.en}`,
-    "",
-    "Your tracking code:",
-    code,
-    "",
-    "To follow your appointment, visit:",
-    trackUrl,
-  ].join("\n");
+    APPOINTMENT_TRACK_HINT,
+  );
 }
 
 function normalizePhone(phone: string): string | null {
@@ -354,8 +431,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (event.endsWith("_status_changed") && oldRecord?.status === record.status) {
+    if (
+      event.endsWith("_status_changed")
+      && oldRecord?.status === record.status
+      && table === "appointments"
+    ) {
       return new Response(JSON.stringify({ skipped: true, reason: "status unchanged" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (
+      event === "complaint_status_changed"
+      && oldRecord?.status === record.status
+      && oldRecord?.summary_response === record.summary_response
+    ) {
+      return new Response(JSON.stringify({ skipped: true, reason: "complaint outcome unchanged" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

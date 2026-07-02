@@ -132,7 +132,13 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  IF TG_OP = 'UPDATE' AND NEW.status IS DISTINCT FROM OLD.status THEN
+  IF TG_OP = 'UPDATE' AND (
+    NEW.status IS DISTINCT FROM OLD.status
+    OR (
+      NEW.summary_response IS DISTINCT FROM OLD.summary_response
+      AND NEW.status = 'Resolved'
+    )
+  ) THEN
     PERFORM private.queue_citizen_sms(
       'complaint_status_changed',
       'complaints',
@@ -184,7 +190,7 @@ $$;
 
 DROP TRIGGER IF EXISTS trg_complaint_sms ON complaints;
 CREATE TRIGGER trg_complaint_sms
-  AFTER INSERT OR UPDATE OF status ON complaints
+  AFTER INSERT OR UPDATE OF status, summary_response ON complaints
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_complaint_sms();
 
